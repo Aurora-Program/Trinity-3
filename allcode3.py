@@ -539,28 +539,69 @@ class TensorPoolManager:
             'mixed': TensorRotor(0, mode="hybrid")     # Balance para análisis general
         }
 
+
     def add_tensor(self, tensor: 'FractalTensor'):
         """Añade un tensor al pool apropiado según su profundidad."""
-        # Lógica simplificada para determinar la profundidad
-        if tensor.nivel_27 and any(v is not None for v in tensor.nivel_27[0]):
-            pool_name = 'deep27'
-        elif tensor.nivel_9 and any(v is not None for v in tensor.nivel_9[0]):
-            pool_name = 'mid9'
-        else:
-            pool_name = 'shallow3'
-
-        self.pools[pool_name].append(tensor)
-        self.pools['mixed'].append(tensor)
-
-        # Actualizar los rotors con el nuevo tamaño de los pools
-        self.rotors[pool_name] = TensorRotor(len(self.pools[pool_name]), mode=self.rotors[pool_name].mode)
-        self.rotors['mixed'] = TensorRotor(len(self.pools['mixed']), mode=self.rotors['mixed'].mode)
+        # ...existing code...
 
     def get_tensor_trio(self, task_type: str = "arquetipo") -> List['FractalTensor']:
         """
         Obtiene un trío de tensores optimizado para una tarea específica,
         utilizando la estrategia de rotación adecuada.
         """
+        task_to_pool = {
+            'arquetipo': 'mixed',
+            'dinamica': 'shallow3',
+            'relator': 'mid9',
+            'axioma': 'deep27'
+        }
+        pool_name = task_to_pool.get(task_type, 'mixed')
+        pool = self.pools[pool_name]
+
+        # Fallback inteligente si el pool preferido no tiene suficientes tensores
+        if len(pool) < 3:
+            fallback_order = ['mixed', 'shallow3', 'mid9', 'deep27']
+            for fallback_pool_name in fallback_order:
+                if len(self.pools[fallback_pool_name]) >= 3:
+                    pool_name = fallback_pool_name
+                    pool = self.pools[pool_name]
+                    break
+
+        # Si aún no hay suficientes, rellena con tensores neutros
+        trio = list(pool[:3])
+        while len(trio) < 3:
+            trio.append(FractalTensor.neutral())
+        return trio
+
+def get_tensor_trio(self, task_type: str = "arquetipo") -> List['FractalTensor']:
+    """
+    Obtiene un trío de tensores optimizado para una tarea específica,
+    utilizando la estrategia de rotación adecuada.
+    """
+    task_to_pool = {
+        'arquetipo': 'mixed',
+        'dinamica': 'shallow3',
+        'relator': 'mid9',
+        'axioma': 'deep27'
+    }
+    pool_name = task_to_pool.get(task_type, 'mixed')
+    pool = self.pools[pool_name]
+
+    # Fallback inteligente si el pool preferido no tiene suficientes tensores
+    if len(pool) < 3:
+        fallback_order = ['mixed', 'shallow3', 'mid9', 'deep27']
+        for fallback_pool_name in fallback_order:
+            if len(self.pools[fallback_pool_name]) >= 3:
+                pool_name = fallback_pool_name
+                pool = self.pools[pool_name]
+                break
+
+    # Si aún no hay suficientes, rellena con tensores neutros
+    trio = list(pool[:3])
+    while len(trio) < 3:
+        trio.append(FractalTensor.neutral())
+    return trio
+    
     @staticmethod
     def fractal_relate(tensor_group, level=27, method='majority'):
         """
