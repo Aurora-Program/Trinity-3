@@ -1,3 +1,11 @@
+# === IMPORTACIÓN O DEFINICIÓN DE FRACTAL_RELATE PARA EL RELATOR FRACTAL ===
+# Placeholder: definir fractal_relate si no existe
+
+# fractal_relate ahora es un método estático de Evolver
+
+# === NOTA SOBRE TESTS Y CONCURRENCIA ===
+# Para concurrencia real, proteger la KB con locks o usar una base de datos transaccional.
+# Añadir casos de prueba unitarios (ejemplo: PyTest) para cada clase principal.
 # ===============================================================================
 # AURORA TRINITY-3 - ARQUITECTURA CANÓNICA COMPLETA Y UNIFICADA
 # ===============================================================================
@@ -225,36 +233,7 @@ class Evolver:
     def __init__(self):
         self.base_transcender = Transcender()
 
-    def _perform_full_tensor_synthesis(self, tensors: List["FractalTensor"]) -> "FractalTensor":
-        """
-        Motor de síntesis fractal que reduce una lista de Tensores Fractales
-        a un único Tensor Fractal representativo mediante una cascada de
-        operaciones de síntesis completas (bottom-up 27->9->3).
 
-        Este es el motor unificado para Arquetipos, Dinámicas y Relatores.
-        """
-        if not tensors:
-            return FractalTensor.neutral()  # Devuelve un tensor vacío si no hay entrada
-
-        current_level_tensors = tensors
-
-        # Bucle recursivo que se ejecuta hasta que solo queda un tensor.
-        while len(current_level_tensors) > 1:
-            next_level_tensors = []
-            for i in range(0, len(current_level_tensors), 3):
-                trio = current_level_tensors[i:i+3]
-                
-                # Rellena con tensores vacíos si el último grupo no es un trío.
-                while len(trio) < 3:
-                    trio.append(FractalTensor.neutral())
-                
-                # Aplica la síntesis fractal completa a cada trío.
-                synthesized_tensor = self.base_transcender.compute_full_fractal(*trio)
-                next_level_tensors.append(synthesized_tensor)
-            
-            current_level_tensors = next_level_tensors
-            
-        return current_level_tensors[0]
 
     def compute_fractal_archetype(self, tensor_family: List["FractalTensor"]) -> "FractalTensor":
         """
@@ -291,6 +270,25 @@ class Evolver:
             return FractalTensor.neutral()
             
         return self._perform_full_tensor_synthesis(contextual_cluster)
+
+    def _perform_full_tensor_synthesis(self, tensors: List["FractalTensor"]) -> "FractalTensor":
+        """
+        Realiza la síntesis fractal completa sobre una lista de tensores.
+        Agrupa en tríos y aplica compute_full_fractal recursivamente hasta obtener uno solo.
+        """
+        if not tensors:
+            return FractalTensor.neutral()
+        current_level_tensors = tensors
+        while len(current_level_tensors) > 1:
+            next_level_tensors = []
+            for i in range(0, len(current_level_tensors), 3):
+                trio = current_level_tensors[i:i+3]
+                while len(trio) < 3:
+                    trio.append(FractalTensor.neutral())
+                synthesized_tensor = self.base_transcender.compute_full_fractal(*trio)
+                next_level_tensors.append(synthesized_tensor)
+            current_level_tensors = next_level_tensors
+        return current_level_tensors[0]
 
 # ===============================================================================
 # VERSIÓN MEJORADA DE KB Y EXTENDER PARA GESTIONAR TENSORES FRACTALES
@@ -373,19 +371,16 @@ class FractalKnowledgeBase:
             self.universes[space_id] = _SingleUniverseKB()
         return self.universes[space_id]
 
-    def add_entry(self, space_id: str, Ms: List[int], MetaM: List[int], **kwargs) -> bool:
+    def add_entry(self, space_id: str, name: str, Ms: List[int], MetaM: List[int], **kwargs) -> bool:
         """
-        Backward-compatible: crea un FractalTensor plano a partir de Ms y MetaM
-        y lo almacena como arquetipo en el espacio dado.
+        Unifica la firma: nombre obligatorio, Ms y MetaM. Crea tensor plano y lo almacena.
         """
-        # Construir tensor plano usando los primeros 3 bits de MetaM
         root = Ms
         flat = MetaM[:3]
         nivel_9 = [flat for _ in range(9)]
         nivel_27 = [flat for _ in range(27)]
         tensor = FractalTensor(nivel_3=[root], nivel_9=nivel_9, nivel_27=nivel_27)
-        return self.add_archetype(space_id, tensor, **kwargs)
-    
+        return self.add_archetype(space_id, name, tensor, **kwargs)
     def add_archetype(self, space_id: str, name: str, archetype_tensor: "FractalTensor", **kwargs) -> bool:
         """Añade un arquetipo fractal con nombre al universo correcto."""
         return self._get_space(space_id).add_archetype(archetype_tensor, name=name, **kwargs)
@@ -566,47 +561,44 @@ class TensorPoolManager:
         Obtiene un trío de tensores optimizado para una tarea específica,
         utilizando la estrategia de rotación adecuada.
         """
-        task_to_pool = {
-            'arquetipo': 'mixed',
-            'dinamica': 'shallow3',
-            'relator': 'mid9',
-            'axioma': 'deep27'
-        }
-        pool_name = task_to_pool.get(task_type, 'mixed')
-        pool = self.pools[pool_name]
-
-        # Fallback inteligente si el pool preferido no tiene suficientes tensores
-        if len(pool) < 3:
-            fallback_order = ['mixed', 'shallow3', 'mid9', 'deep27']
-            for fallback_pool_name in fallback_order:
-                if len(self.pools[fallback_pool_name]) >= 3:
-                    pool_name = fallback_pool_name
-                    pool = self.pools[pool_name]
-                    break
-        
-        if len(pool) < 3:
-            return [] # No hay suficientes tensores en ningún pool
-
-# ===============================================================================
-# DEMOSTRACIÓN: APRENDIZAJE Y APLICACIÓN DE ARQUETIPOS FRACTALES
-# ===============================================================================
-# ===============================================================================
-# NIVEL 4: MOTOR DE ABSTRACCIÓN Y APRENDIZAJE (EVOLVER) - VERSIÓN COMPLETA
-# ===============================================================================
-
-class Evolver:
-    """
-    Evolver con visión fractal unificada para Arquetipos, Dinámicas y Relatores.
-
-    Utiliza un único motor de síntesis fractal para analizar diferentes perspectivas
-    del conocimiento, demostrando la autosimilaridad de la arquitectura.
-    """
-    def __init__(self):
-        self.base_transcender = Transcender()
-
-    def _perform_full_tensor_synthesis(self, tensors: List["FractalTensor"]) -> "FractalTensor":
+    @staticmethod
+    def fractal_relate(tensor_group, level=27, method='majority'):
         """
-        Motor de síntesis fractal que reduce una lista de Tensores Fractales
+        Calcula una firma relacional booleana/ternaria entre tensores de la misma dimensión.
+        Para cada posición y bit, aplica la función de mayoría (o unanimidad, XNOR, XOR).
+        Retorna un vector resumen por dimensión.
+        """
+        if not tensor_group:
+            return None
+        # Asume que tensor_group es una lista de FractalTensor y todos tienen la misma dimensión
+        # Ejemplo: para nivel_27, cada tensor tiene 27 vectores de 3 bits
+        dim_vectors = [t.nivel_27 for t in tensor_group]
+        n = len(dim_vectors)
+        if n == 0:
+            return None
+        signature = []
+        for pos in range(27):
+            vals = [dim_vectors[t][pos] for t in range(n)]  # List[List[int]]
+            bit_result = []
+            for bit in range(3):
+                bit_vals = [v[bit] for v in vals if v[bit] is not None]
+                if not bit_vals:
+                    bit_result.append(None)
+                    continue
+                # Majority logic (ternary): si hay mayoría de 1, pone 1; mayoría de 0, pone 0; empate/null, None
+                count_1 = sum(1 for b in bit_vals if b == 1)
+                count_0 = sum(1 for b in bit_vals if b == 0)
+                if count_1 > count_0:
+                    bit_result.append(1)
+                elif count_0 > count_1:
+                    bit_result.append(0)
+                else:
+                    bit_result.append(None)
+            signature.append(bit_result)
+        return signature  # List[List[Optional[int]]] (27 x 3)
+        
+
+        """
         a un único Tensor Fractal representativo mediante una cascada de
         operaciones de síntesis completas (bottom-up 27->9->3).
 
