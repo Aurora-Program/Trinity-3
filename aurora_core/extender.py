@@ -1,6 +1,36 @@
 from aurora_core.evolver import Evolver
 
 class Extender:
+    def separar_silabas(self, entrada_eval, token_silaba):
+        """
+        Dada una secuencia de vectores (entrada_eval), predice la secuencia completa incluyendo el token_silaba como un símbolo más.
+        El token_silaba debe tener su propio vector fractal en el diccionario de entrada.
+        """
+        from allcode3new import Transcender
+        transcender = Transcender(fractal_vector=None)
+        # Se asume que entrada_eval ya incluye el vector del guion donde corresponde (si es entrenamiento)
+        # Para predicción, se genera la secuencia completa, insertando el vector del guion cuando el modelo lo predice
+        secuencia_predicha = [entrada_eval[0]]
+        for i in range(len(entrada_eval) - 1):
+            A = entrada_eval[i]
+            B = entrada_eval[i+1]
+            # Predice el siguiente símbolo usando la lógica Aurora (por ejemplo, deep_learning o relate_vectors)
+            # Aquí, para cada par, se predice si el siguiente debe ser un guion o una letra
+            # Se asume que el vector del guion está disponible como token_silaba
+            # Ejemplo: si el modelo predice que el siguiente es un guion, se inserta su vector
+            # (En entrenamiento, el guion ya está en la secuencia; en predicción, se debe inferir)
+            # Aquí solo se muestra la estructura, la lógica de predicción debe ser Aurora-nativa
+            # Por ejemplo, podrías usar transcender.relate_vectors(A, B) y comparar con el vector del guion
+            # Si la predicción es más cercana al guion que a cualquier letra, se inserta el guion
+            # (Esto requiere que el vector del guion esté definido en el diccionario de entrada)
+            # Ejemplo de comparación:
+            # rel = transcender.relate_vectors(A, B)
+            # dist_guion = sum((a - b) ** 2 for a, b in zip(rel, token_silaba))
+            # ... comparar con otras letras ...
+            # Si dist_guion es mínima, insertar token_silaba
+            # Aquí solo se inserta el siguiente símbolo, pero puedes adaptar la lógica según tu pipeline
+            secuencia_predicha.append(B)
+        return secuencia_predicha
     """
     El Extender reconstruye información concreta a partir de conocimiento abstracto (Ss, MetaM, axiomas, dinámicas, relaciones).
     Utiliza la dinámica para identificar el arquetipo adecuado y luego extiende (reconstruye) los tensores originales usando la información de los Transcender, pero en sentido inverso.

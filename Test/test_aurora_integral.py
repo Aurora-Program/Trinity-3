@@ -13,7 +13,7 @@ def test_aurora_operativo():
     print("=== TEST OPERATIVO: APRENDIZAJE, INFERENCIA Y MANEJO DE AMBIGÜEDAD ===")
     kb = KnowledgeBase()
     evolver = Evolver()
-    transcender = Transcender()
+    transcender = Transcender(fractal_vector=None)
     extender = Extender(knowledge_base=kb, evolver=evolver)
 
     # Espacio Lógico 1: Diagnóstico Médico
@@ -34,7 +34,6 @@ def test_aurora_operativo():
         C=contexto_medico,
         M_emergent=diagnostico_gripe,
         MetaM=resultado['MetaM'],
-        R_validos=resultado['R_hipotesis'],
         transcender_id="MED001"
     )
     print(f"Aprendido patrón médico: MetaM={resultado['MetaM']}")
@@ -57,7 +56,6 @@ def test_aurora_operativo():
         C=contexto_finanzas,
         M_emergent=riesgo_fraude,
         MetaM=resultado['MetaM'],
-        R_validos=resultado['R_hipotesis'],
         transcender_id="FRA001"
     )
     print(f"Aprendido patrón financiero: MetaM={resultado['MetaM']}")

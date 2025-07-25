@@ -1,0 +1,5 @@
+Metadata-Version: 2.2
+Name: aurora_trinity
+Version: 0.1.0
+Requires-Dist: Flask
+Dynamic: requires-dist

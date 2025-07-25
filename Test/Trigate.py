@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from aurora_core.Trigate import Trigate
+from allcode3new import Trigate
 
 def int_to_bits(n):
     return [(n >> 2) & 1, (n >> 1) & 1, n & 1]

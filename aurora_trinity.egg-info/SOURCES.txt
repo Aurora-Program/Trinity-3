@@ -1,0 +1,17 @@
+setup.py
+aurora_trinity.egg-info/PKG-INFO
+aurora_trinity.egg-info/SOURCES.txt
+aurora_trinity.egg-info/dependency_links.txt
+aurora_trinity.egg-info/entry_points.txt
+aurora_trinity.egg-info/requires.txt
+aurora_trinity.egg-info/top_level.txt
+test/test_aurora_integral.py
+test/test_evolver_dynamics_relator.py
+test/test_transcender_no_solution.py
+test/test_transcender_null.py
+test/test_trigate_recursive_synthesis.py
+test/testfractal.py
+test/testgrafico.py
+test/testpabras.py
+tests/test_fractal_core.py
+tests/test_fractal_e2e.py

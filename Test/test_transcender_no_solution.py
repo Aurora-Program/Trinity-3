@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from aurora_core.Transcender import Transcender
 
 def test_deep_learning_no_solution():
-    transcender = Transcender()
+    transcender = Transcender(fractal_vector=None)
     # Caso: No hay ninguna combinación posible que produzca el M_emergent deseado
     A = [1, 1, 1]
     B = [0, 0, 0]

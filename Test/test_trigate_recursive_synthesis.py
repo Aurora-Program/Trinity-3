@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from aurora_core.Trigate import Trigate
+from allcode3new import Trigate
 import random
 
 def test_recursive_synthesis_deep():
