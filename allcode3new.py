@@ -1,3 +1,15 @@
+'''
+    Muy imporante:
+
+ Principios que se deben aplicar para el desarrollo de esta libreria:
+
+ Simplicidad, el codigo nunca debe basar en cadenas larga de if and else. Tienes que ser elegante y en todo caso bascar soluciones recusivas.
+ Autosimilitud. El codigo debe buscar que todos los mecanimso de emergencia y aprendizaje de relgas sigan patrones similares en cada uno de sus componentes
+ Solucion inversa. El codigo de transcendiencia y extension debe tener la misma logica pero en direccion inversa.
+ 
+'''
+
+
 # ===================== AUTOCURACIÓN: HOT-FIX, REAXIOMATIZACIÓN Y CONSEJO TERNARIO =====================
 
 # Mini-test para ExpertRelator tuple return
@@ -286,6 +298,8 @@ class FractalTensor:
     Representa un tensor fractal con 3 niveles de profundidad (3, 9, 27).
     """
 
+
+
     def __init__(
         self,
         nivel_3=None,
@@ -296,50 +310,59 @@ class FractalTensor:
         Ss=None,
         dMs=None
     ):
-        def validate_vector(vec, n_blocks):
-            # Ensures a list of n_blocks vectors, each of length 3, with only 0/1/None
-            if vec is None:
-                return [[None]*3 for _ in range(n_blocks)]
-            out = []
-            for i in range(n_blocks):
-                if isinstance(vec, (list, tuple)) and len(vec) > i and isinstance(vec[i], (list, tuple)):
-                    v = list(vec[i])[:3]
-                    v = [x if x in (0, 1, None) else 0 for x in v]
-                    while len(v) < 3:
-                        v.append(0)
-                    out.append(v)
-                else:
-                    out.append([0, 0, 0])
-            return out
+        def norm3(v):
+            # Normalize a vector to length 3, fill with 0 if needed
+            if not isinstance(v, (list, tuple)):
+                return [0, 0, 0]
+            return [(0 if x is None else int(x) if x in (0, 1) else 0) for x in list(v)[:3]] + [0] * (3 - len(v))
 
-        def expand(vec, n_blocks):
-            if vec is None:
-                return [[None]*3 for _ in range(n_blocks)]
-            if isinstance(vec, (list, tuple)) and len(vec) == n_blocks*3 and not isinstance(vec[0], (list, tuple)):
-                # Flat vector, reshape
-                return [list(vec[i*3:(i+1)*3]) for i in range(n_blocks)]
-            if isinstance(vec, (list, tuple)) and len(vec) == n_blocks and isinstance(vec[0], (list, tuple)):
-                # Already block structure
-                return [list(x)[:3] for x in vec]
-            if isinstance(vec, (list, tuple)) and len(vec) == 1 and isinstance(vec[0], (list, tuple)):
-                # Single vector, pad rest
-                return [list(vec[0])[:3]] + [[None]*3 for _ in range(n_blocks-1)]
-            return [[None]*3 for _ in range(n_blocks)]
+        def expand_nivel_3(n3):
+            # Always returns a list of 3 vectors of length 3
+            if not isinstance(n3, (list, tuple)) or len(n3) == 0:
+                return [[0, 0, 0] for _ in range(3)]
+            if len(n3) == 1 and isinstance(n3[0], (list, tuple)) and len(n3[0]) == 3:
+                # If only one vector, repeat it
+                return [list(n3[0]) for _ in range(3)]
+            return [norm3(v) for v in list(n3)[:3]] + [[0, 0, 0]] * (3 - len(n3))
 
-        # Handle flat vector of length 27 passed as nivel_3
-        if (
-            isinstance(nivel_3, (list, tuple)) and
-            len(nivel_3) == 27 and
-            not isinstance(nivel_3[0], (list, tuple))
-        ):
-            flat = [x if x in (0, 1, None) else 0 for x in nivel_3]
-            self.nivel_3 = [flat[i*9:i*9+3][:3] for i in range(3)]
-            self.nivel_9 = [flat[i*3:(i+1)*3] for i in range(9)]
-            self.nivel_27 = [[flat[i]]*3 for i in range(27)]
+        def expand_nivel_9(n9):
+            # Always returns a list of 9 vectors of length 3
+            if not isinstance(n9, (list, tuple)) or len(n9) == 0:
+                return [[0, 0, 0] for _ in range(9)]
+            # If only one vector, repeat it
+            if len(n9) == 1 and isinstance(n9[0], (list, tuple)) and len(n9[0]) == 3:
+                return [list(n9[0]) for _ in range(9)]
+            return [norm3(v) for v in list(n9)[:9]] + [[0, 0, 0]] * (9 - len(n9))
+
+        def expand_nivel_27(n27):
+            # Always returns a list of 27 vectors of length 3
+            if not isinstance(n27, (list, tuple)) or len(n27) == 0:
+                return [[0, 0, 0] for _ in range(27)]
+            if len(n27) == 1 and isinstance(n27[0], (list, tuple)) and len(n27[0]) == 3:
+                return [list(n27[0]) for _ in range(27)]
+            return [norm3(v) for v in list(n27)[:27]] + [[0, 0, 0]] * (27 - len(n27))
+
+        # If only nivel_3 is provided, expand to all levels
+        if nivel_3 is not None and (nivel_9 is None and nivel_27 is None):
+            n3 = expand_nivel_3(nivel_3)
+            n9 = [list(n3[i // 3]) for i in range(9)]
+            n27 = [list(n3[i // 9]) for i in range(27)]
+        elif nivel_9 is not None and nivel_27 is None:
+            n9 = expand_nivel_9(nivel_9)
+            n3 = [list(n9[i * 3]) for i in range(3)]
+            n27 = [list(n9[i // 3]) for i in range(27)]
+        elif nivel_27 is not None:
+            n27 = expand_nivel_27(nivel_27)
+            n9 = [list(n27[i * 3]) for i in range(9)]
+            n3 = [list(n27[i * 9]) for i in range(3)]
         else:
-            self.nivel_3  = validate_vector(expand(nivel_3, 3), 3)
-            self.nivel_9  = validate_vector(expand(nivel_9, 9), 9)
-            self.nivel_27 = validate_vector(expand(nivel_27, 27), 27)
+            n3 = expand_nivel_3(nivel_3)
+            n9 = expand_nivel_9(nivel_9)
+            n27 = expand_nivel_27(nivel_27)
+
+        self.nivel_3 = n3
+        self.nivel_9 = n9
+        self.nivel_27 = n27
 
         self.Ms  = Ms if Ms is not None else (self.nivel_3[0] if self.nivel_3 and isinstance(self.nivel_3[0], (list, tuple)) and len(self.nivel_3[0]) == 3 else [0,0,0])
         self.Ss  = Ss
@@ -509,10 +532,12 @@ class _SingleUniverseKB:
         """Añade un arquetipo (Tensor Fractal) al universo, almacenando Ss (memoria factual)."""
         if not isinstance(archetype_tensor, FractalTensor):
             raise ValueError("La entrada debe ser un objeto FractalTensor.")
-        # --- Clave raíz inmutable ---
-        ms_key = tuple(archetype_tensor.nivel_3[0][:3])
-        if ms_key in self.ms_index:
-            warnings.warn(f"Violación de Coherencia: Ya existe un arquetipo con la clave Ms={ms_key}. No se añadió el nuevo.")
+        # Normalize keys to int(0 if x is None else x) for robust lookup
+        ms_key = tuple(int(0 if x is None else x) for x in archetype_tensor.nivel_3[0][:3])
+        ss_key = tuple(int(0 if x is None else x) for x in (Ss[:3] if Ss else archetype_tensor.nivel_3[0][:3]))
+        # Coherencia: no sobrescribir Ms ni Ss
+        if ms_key in self.ms_index or ss_key in self.ss_index:
+            warnings.warn(f"Violación de Coherencia: Ya existe un arquetipo con la clave Ms={ms_key} o Ss={ss_key}. No se añadió el nuevo.")
             self.coherence_violations += 1
             return False
         if name and name in self.name_index:
@@ -523,18 +548,21 @@ class _SingleUniverseKB:
         if name: metadata['name'] = name
         setattr(archetype_tensor, 'metadata', metadata)
         setattr(archetype_tensor, 'timestamp', time.time())
-        setattr(archetype_tensor, 'Ss', Ss)
+        setattr(archetype_tensor, 'Ss', list(ss_key))
         self.archetypes.append(archetype_tensor)
         self.ms_index[ms_key] = archetype_tensor
+        self.ss_index[ss_key] = archetype_tensor
         if name: self.name_index[name] = archetype_tensor
-        # --- FIX: Usar la clave raíz INMUTABLE para el ss_index ---
-        self.ss_index.setdefault(ms_key, []).append(archetype_tensor)
         return True
 
     def find_archetype_by_ms(self, Ms_query: List[int]) -> Optional["FractalTensor"]:
         """Busca un arquetipo por su clave Ms (vector raíz, normalizado a 3 ints)."""
         return self.ms_index.get(tuple(Ms_query[:3]))
-    
+
+    def find_archetype_by_ss(self, Ss_query: List[int]) -> Optional["FractalTensor"]:
+        """Busca un arquetipo por su clave Ss (memoria factual, normalizado a 3 ints)."""
+        return self.ss_index.get(tuple(Ss_query[:3]))
+
     def find_archetype_by_name(self, name: str) -> Optional["FractalTensor"]:
         """Busca un arquetipo por su nombre asignado."""
         return self.name_index.get(name)
@@ -665,15 +693,24 @@ class Extender:
     def __init__(self, knowledge_base: "FractalKnowledgeBase"):
         self.kb = knowledge_base
         self.transcender = Transcender()  # El relator necesita un transcender
+        self._lut_tables = {}
 
     # --- Experto Arquetipo como método ---
     def _validate_archetype(self, ss_query: list, space_id: str) -> Tuple[bool, Optional['FractalTensor']]:
         universe = self.kb._get_space(space_id)
-        ss_query_fixed = tuple(int(0 if x is None else x) for x in ss_query[:3])
-        # Búsqueda primaria y única, ya que ambos índices usan la misma clave
-        exact_match_list = universe.ss_index.get(ss_query_fixed)
-        if exact_match_list:
-            return True, exact_match_list[0]
+        ss_key = tuple(int(x) if x in (0, 1) else 0 for x in ss_query[:3])
+        print(f"DEBUG: Looking up archetype with ss_key={ss_key} in space={space_id}")
+        # Buscar por Ss
+        archi_ss = universe.find_archetype_by_ss(list(ss_key))
+        if archi_ss:
+            print(f"DEBUG: Found archetype by Ss: {archi_ss}")
+            return True, archi_ss
+        # Buscar por Ms
+        archi_ms = universe.find_archetype_by_ms(list(ss_key))
+        if archi_ms:
+            print(f"DEBUG: Found archetype by Ms: {archi_ms}")
+            return True, archi_ms
+        print("DEBUG: No archetype found")
         return False, None
 
     # --- Experto Dinámica como método ---
@@ -694,17 +731,23 @@ class Extender:
     def _contextualize_relations(self, ss_query: list, space_id: str) -> Tuple[bool, Optional['FractalTensor']]:
         universe = self.kb._get_space(space_id)
         if not universe.archetypes:
+            print("DEBUG: No archetypes in universe")
             return False, None
         best, best_score = None, float('-inf')
         for archetype in universe.archetypes:
             if not getattr(archetype, 'Ss', None):
                 continue
             rel = self.transcender.relate_vectors(ss_query, archetype.Ss)
-            score = sum(1 for bit in rel if bit == 0) 
+            score = sum(1 for bit in rel if bit == 0)
             if score > best_score:
                 best_score, best = score, archetype
         if best:
-            return True, best
+            # Create a deep copy to avoid modifying the original
+            result = copy.deepcopy(best)
+            result.nivel_3[0] = list(ss_query[:3])  # Explicitly preserve root
+            print(f"DEBUG: Contextualized with score={best_score}, root preserved={result.nivel_3[0]}")
+            return True, result
+        print("DEBUG: No relational match found")
         return False, None
 
     # --- Orquestador Principal ---
@@ -719,39 +762,38 @@ class Extender:
         ss_query = [int(0 if x is None else x) for x in ss_query[:3]]
         space_id = contexto.get('space_id', 'default')
 
-        # 1. Búsqueda de axioma
-        ok_axioma, archi = self._validate_archetype(ss_query, space_id)
-        if ok_axioma and archi:
-            log.append(f"✅ Arquetipo encontrado: '{getattr(archi, 'metadata', {}).get('name', 'sin nombre')}'.")
-            return {
-                "reconstructed_tensor": copy.deepcopy(archi),
-                "reconstruction_method": "reconstrucción por arquetipo (axioma)",
-                "log": log
-            }
-
-        # 2. Si no hay axioma, consultar a otros expertos
-        log.append("❌ No se encontró axioma. Consultando expertos...")
-        ok_dyn, dyn = self._project_dynamics(ss_query, space_id)
-        if ok_dyn and dyn:
-            log.append("✅ Dinámica encontrada. Usando proyección.")
-            dyn.nivel_3[0] = ss_query # Preservar raíz
-            return {
-                "reconstructed_tensor": dyn,
-                "reconstruction_method": "proyección por dinámica (raíz preservada)",
-                "log": log
-            }
-
-        ok_rel, rel = self._contextualize_relations(ss_query, space_id)
-        if ok_rel and rel:
-            log.append("✅ Relación contextual encontrada. Usando relator.")
-            rel.nivel_3[0] = ss_query # Preservar raíz
-            return {
-                "reconstructed_tensor": rel,
-                "reconstruction_method": "contextualización por relator (raíz preservada)",
-                "log": log
-            }
-            
-        # 3. Último recurso
+        # Expert pipeline (no if/elif)
+        STEPS = [
+            lambda q, s: (self.lookup_lut(s, q) is not None, self.lookup_lut(s, q)),
+            self._validate_archetype,
+            self._project_dynamics,
+            self._contextualize_relations
+        ]
+        METHODS = [
+            "reconstrucción por LUT",
+            "reconstrucción por arquetipo (axioma)",
+            "proyección por dinámica (raíz preservada)",
+            "contextualización por relator (raíz preservada)"
+        ]
+        for step, method in zip(STEPS, METHODS):
+            ok, tensor = step(ss_query, space_id)
+            if ok and tensor is not None:
+                log.append(f"✅ {method}.")
+                # For dynamic/relator, preserve root
+                if method.startswith("proyección") or method.startswith("contextualización"):
+                    result = copy.deepcopy(tensor)
+                    result.nivel_3[0] = ss_query
+                    return {
+                        "reconstructed_tensor": result,
+                        "reconstruction_method": method,
+                        "log": log
+                    }
+                return {
+                    "reconstructed_tensor": copy.deepcopy(tensor),
+                    "reconstruction_method": method,
+                    "log": log
+                }
+        # Fallback
         log.append("🤷 No se encontraron coincidencias. Devolviendo tensor neutro.")
         return {
             "reconstructed_tensor": FractalTensor.neutral(),
@@ -1032,8 +1074,10 @@ if __name__ == "__main__":
     kb.add_archetype('fisica_conceptual', 'movimiento_universal', arquetipo_movimiento, Ss=Ss_movimiento)
     print("  └─ Arquetipo almacenado en el espacio 'fisica_conceptual'.")
     # Initialize LUT for archetype
-    extender._lut_tables = {'fisica_conceptual': {(1, 0, 1): arquetipo_movimiento}}
     extender.learn_lut_from_data('fisica_conceptual', [([1, 0, 1], arquetipo_movimiento)])
+    # Print KB indices for debug
+    print("DEBUG: ss_index:", kb._get_space('fisica_conceptual').ss_index)
+    print("DEBUG: ms_index:", kb._get_space('fisica_conceptual').ms_index)
 
     # === FASE 2: ANÁLISIS DE DINÁMICAS ===
     print("\n⚡ FASE 2: ANÁLISIS DE DINÁMICAS")
@@ -1067,17 +1111,18 @@ if __name__ == "__main__":
     kb.add_archetype('mapas_conceptuales', 'mecanica_basica', firma_relacional, Ss=Ss_relator)
     print("  └─ Relator almacenado en 'mapas_conceptuales'.")
 
+
     # === FASE 4: EXTENSIÓN BASADA EN CONOCIMIENTO ===
     print("\n🧩 FASE 4: EXTENSIÓN POR ARQUETIPO")
     print("-" * 50)
-    
-    # Construir el tensor incompleto solo con la raíz (primer vector de nivel_3)
-    tensor_incompleto = FractalTensor(nivel_3=[arquetipo_movimiento.nivel_3[0][:3], [None, None, None], [None, None, None]])
-    print(f"• Tensor a extender (solo con raíz): {tensor_incompleto}")
+
+    # Usar directamente el vector raíz del arquetipo como consulta
+    query_vector = arquetipo_movimiento.nivel_3[0][:3]
+    print(f"• Vector a extender (solo con raíz): {query_vector}")
 
     # Extensión robusta: la función copiará todos los niveles del arquetipo encontrado
     resultado_extension = extender.extend_fractal(
-        tensor_incompleto,
+        query_vector,
         contexto={'space_id': 'fisica_conceptual'}
     )
 
