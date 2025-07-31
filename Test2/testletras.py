@@ -26,50 +26,19 @@ MODIFICACION = {"Base": 1, "Modificable": 2, "Componente Dígrafo": 3, "Silente"
 
 # Dictionary from user input
 diccionario_letras_fractales = {
-    '-': [{"descripcion": "Separador de sílaba", "tensor": [[1,2,3], [0, 0, 0], [SIMETRIA["Horizontal"], TRAZOS["Rectos"], CAJA_TIPO["Completa"]], [FRECUENCIA["Muy Baja"], MODIFICACION["Base"]]]}],
-    'A': [{"descripcion": "Vocal abierta", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Alta"], MODIFICACION["Modificable"]]]}],
-    'E': [{"descripcion": "Vocal media anterior", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Horizontal"], TRAZOS["Mixtos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Alta"], MODIFICACION["Modificable"]]]}],
-    'I': [{"descripcion": "Vocal cerrada anterior", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Modificable"]]]}],
-    'O': [{"descripcion": "Vocal media posterior", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Horizontal"], TRAZOS["Curvos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Alta"], MODIFICACION["Modificable"]]]}],
-    'U': [{"descripcion": "Vocal cerrada posterior", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Vertical"], TRAZOS["Curvos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Media"], MODIFICACION["Modificable"]]]}],
-    'B': [{"descripcion": "Oclusiva bilabial sonora", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Horizontal"], TRAZOS["Mixtos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Media"], MODIFICACION["Base"]]]}],
-    'C': [
-        {"descripcion": "Sonido /k/ (casa)", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Horizontal"], TRAZOS["Curvos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Componente Dígrafo"]]]},
-        {"descripcion": "Sonido /s/ (cielo)", "tensor": [[1,2,3], [PUNTO_ART["Dental"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Horizontal"], TRAZOS["Curvos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Componente Dígrafo"]]]}
-    ],
-    'D': [{"descripcion": "Oclusiva dental sonora", "tensor": [[1,2,3], [PUNTO_ART["Dental"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Alta"], MODIFICACION["Base"]]]}],
-    'F': [{"descripcion": "Fricativa labiodental sorda", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Completa"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}],
-    'G': [
-        {"descripcion": "Sonido /g/ (gato)", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Curvos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Media"], MODIFICACION["Base"]]]},
-        {"descripcion": "Sonido /x/ (gente)", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Curvos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Media"], MODIFICACION["Base"]]]}
-    ],
-    'H': [{"descripcion": "Letra silente", "tensor": [[1,2,3], [0, MODO_ART["Silente"], SONORIDAD["Silente"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Media"], MODIFICACION["Silente"]]]}],
-    'J': [{"descripcion": "Fricativa velar sorda", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}],
-    'K': [{"descripcion": "Oclusiva velar sorda (extranjerismos)", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Rectos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Muy Baja"], MODIFICACION["Base"]]]}],
-    'L': [{"descripcion": "Lateral alveolar sonora", "tensor": [[1,2,3], [PUNTO_ART["Alveolar"], MODO_ART["Lateral"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Rectos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Alta"], MODIFICACION["Componente Dígrafo"]]]}],
-    'M': [{"descripcion": "Nasal bilabial sonora", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Nasal"], SONORIDAD["Sonoro"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Base"]]]}],
-    'N': [{"descripcion": "Nasal alveolar sonora", "tensor": [[1,2,3], [PUNTO_ART["Alveolar"], MODO_ART["Nasal"], SONORIDAD["Sonoro"]], [SIMETRIA["Rotacional"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Base"]]]}],
-    'Ñ': [{"descripcion": "Nasal palatal sonora", "tensor": [[1,2,3], [PUNTO_ART["Palatal"], MODO_ART["Nasal"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}],
-    'P': [{"descripcion": "Oclusiva bilabial sorda", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Alta"], MODIFICACION["Base"]]]}],
-    'Q': [{"descripcion": "Oclusiva velar sorda (en 'que','qui')", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Media"], MODIFICACION["Base"]]]}],
-    'R': [
-        {"descripcion": "Vibrante simple (caro)", "tensor": [[1,2,3], [PUNTO_ART["Alveolar"], MODO_ART["Vibrante Simple"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Componente Dígrafo"]]]},
-        {"descripcion": "Vibrante múltiple (carro, rosa)", "tensor": [[1,2,3], [PUNTO_ART["Alveolar"], MODO_ART["Vibrante Múltiple"], SONORIDAD["Sonoro"]], [SIMETRIA["Asimétrica"], TRAZOS["Mixtos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Alta"], MODIFICACION["Componente Dígrafo"]]]}
-    ],
-    'S': [{"descripcion": "Fricativa alveolar sorda", "tensor": [[1,2,3], [PUNTO_ART["Alveolar"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Rotacional"], TRAZOS["Curvos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Alta"], MODIFICACION["Base"]]]}],
-    'T': [{"descripcion": "Oclusiva dental sorda", "tensor": [[1,2,3], [PUNTO_ART["Dental"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Ascendente"]], [FRECUENCIA["Alta"], MODIFICACION["Base"]]]}],
-    'V': [{"descripcion": "Oclusiva bilabial sonora (igual que B)", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Media"], MODIFICACION["Base"]]]}],
-    'W': [
-        {"descripcion": "Sonido /b/ (wolframio)", "tensor": [[1,2,3], [PUNTO_ART["Labial"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Baja"], MODIFICACION["Base"]]]},
-        {"descripcion": "Sonido /gu/ (whisky)", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sonoro"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Muy Baja"], MODIFICACION["Base"]]]}
-    ],
-    'X': [{"descripcion": "Sonido /ks/", "tensor": [[1,2,3], [PUNTO_ART["Velar"], MODO_ART["Oclusivo"], SONORIDAD["Sordo"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}],
-    'Y': [
-        {"descripcion": "Sonido consonántico (yema)", "tensor": [[1,2,3], [PUNTO_ART["Palatal"], MODO_ART["Fricativo"], SONORIDAD["Sonoro"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]},
-        {"descripcion": "Sonido vocálico (ley)", "tensor": [[1,2,3], [PUNTO_ART["Vocálico"], MODO_ART["Vocálico"], SONORIDAD["Vocálico"]], [SIMETRIA["Vertical"], TRAZOS["Rectos"], CAJA_TIPO["Descendente"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}
-    ],
-    'Z': [{"descripcion": "Fricativa dental sorda (sonido /s/ en LatAm)", "tensor": [[1,2,3], [PUNTO_ART["Dental"], MODO_ART["Fricativo"], SONORIDAD["Sordo"]], [SIMETRIA["Rotacional"], TRAZOS["Rectos"], CAJA_TIPO["Caja-X"]], [FRECUENCIA["Baja"], MODIFICACION["Base"]]]}],
 }
+
+# --- Asignar un vector raíz único a cada letra (one-hot simple para 29 letras) ---
+_letras = list(diccionario_letras_fractales.keys())
+for idx, letra in enumerate(_letras):
+    for variante in diccionario_letras_fractales[letra]:
+        root = [0, 0, 0]
+        # Codificación simple: idx en binario en 3 bits (mod 8)
+        code = idx % 8
+        root[0] = (code >> 2) & 1
+        root[1] = (code >> 1) & 1
+        root[2] = code & 1
+        variante["tensor"][0] = root
 
 VOCALES = "AEIOUÁÉÍÓÚÜaeiouáéíóúü"
 def vector_fractal_completo(letra, siguiente_letra=None):
@@ -97,9 +66,10 @@ def letra_a_tensor(letra: str) -> FractalTensor:
     nivel_3 = [tensor[0], tensor[1], tensor[2]]
     return FractalTensor(nivel_3=nivel_3)
 
-def silaba_a_ss(silaba: str) -> list:
-    # Vector ternario de la sílaba (usa tu lógica real)
-    return [1, 0, 1]  # ← placeholder
+def silaba_a_ss(silaba: str) -> tuple:
+    # Mapeo inyectivo: usa el valor ASCII de los primeros tres caracteres (rellena con '-')
+    s = silaba.upper().ljust(3, '-')
+    return (ord(s[0]), ord(s[1]), ord(s[2]))
 
 from dataclasses import dataclass
 
@@ -155,6 +125,9 @@ corpus = [
 
 
 
+ # --- LUT inversa global para decodificar tensores a sílabas ---
+tensor2silaba = {}
+
 # --- 2. Síntesis fractal y dinámica ---
 def build_syllable_tensors(trios, evolver):
     syllable_records = []
@@ -175,7 +148,13 @@ def train_extender(syllable_records, corpus, kb, extender, space='silabas'):
         Ss = silaba_a_ss(item.silaba)
         kb.add_archetype(space, f"{item.silaba}", dyn_ft, Ss=Ss)
         data_lut.append((Ss, dyn_ft))
+        # ---- Guarda el mapeo de dyn_ft a la sílaba ----
+        tensor2silaba[str(dyn_ft)] = item.silaba
     extender.learn_lut_from_data(space, data_lut)
+
+# --- Decodificador de tensor a sílaba ---
+def tensor_a_silaba(tensor):
+    return tensor2silaba.get(str(tensor), "?")
 
 # --- 4. Inferencia ---
 
@@ -195,15 +174,12 @@ def silabificar(texto, extender, space='silabas'):
     return predicciones
 
 def validar_palabra(silabas, predicciones):
-    # Une las sílabas reconstruidas y verifica si forman una palabra válida
-    palabra_reconstruida = ''.join(str(p) for p in predicciones)
+    # Decodifica cada tensor a string antes de unir
+    palabra_reconstruida = ''.join(tensor_a_silaba(p) for p in predicciones)
     if palabra_reconstruida.upper() in PALABRAS_VALIDAS:
         return palabra_reconstruida, True
     else:
-        # Aprendizaje fractal: añadir como nuevo arquetipo a la KB (simulado)
-        # Aquí podrías registrar el nuevo arquetipo en la KB real, usando extender y kb globales
         print(f"[Aprendizaje] Nuevo arquetipo registrado: {palabra_reconstruida}")
-        # (En un sistema real, aquí se llamaría a extender.knowledge_base.add_archetype o similar)
         return palabra_reconstruida, False
 
 
@@ -218,11 +194,22 @@ if __name__ == "__main__":
     for item in corpus:
         print(f"Sílaba: {item.silaba:5}  Letras: {', '.join(item.letras)}")
 
+
     # 2. Generar trios de tensores
     trios = build_letter_trios(corpus)
 
+    # --- DEBUG: Mostrar tensores de letras por sílaba ---
+    print("\n--- Tensores de letras por sílaba ---")
+    for i, trio in enumerate(trios):
+        print(f"{corpus[i].silaba}: {[t.nivel_3 for t in trio]}")
+
     # 3. Síntesis fractal y dinámica
     syllable_records = build_syllable_tensors(trios, evolver)
+
+    # --- DEBUG: Mostrar tensores dinámicos por sílaba ---
+    print("\n--- Tensores dinámicos por sílaba ---")
+    for i, (Ms_emerg, dyn_ft) in enumerate(syllable_records):
+        print(f"{corpus[i].silaba}: Ms_emerg={Ms_emerg}, dyn_ft={dyn_ft}")
 
     # 4. Entrenar Extender
     train_extender(syllable_records, corpus, kb, extender)
@@ -281,13 +268,13 @@ if __name__ == "__main__":
             silabas = texto_prueba.split('-')
         resultado = silabificar(texto_segmentado, extender)
         for sil, pred in zip(silabas, resultado):
-            # Print the reconstructed syllable and its root vector (tokenized output)
+            decod = tensor_a_silaba(pred)
             print(f"Sílaba: {sil:8}  →  Inferencia: {pred}")
-            # If pred is a FractalTensor or similar, print its root vector (nivel_3 or similar attribute)
             if hasattr(pred, 'nivel_3'):
                 print(f"    [Tokenizado/root vector]: {pred.nivel_3}")
             else:
                 print(f"    [Tokenizado/root vector]: {pred}")
+            print(f"    [Sílaba decodificada]: {decod}")
         # Validación a nivel palabra
         palabra_reconstruida, es_valida = validar_palabra(silabas, resultado)
         if es_valida:

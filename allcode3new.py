@@ -1,3 +1,69 @@
+
+
+"""
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+'''
+NO BORRAR ESTA NOTAS:
+librereria trinity-3: Classes pare el nuecleo de modelo Aurora de inteligencia electronica
+El nucleo hacer 3 operaciones fundamentales:
+1. Obtner la inteligencia de la realcion entre los valores de las dimension de los tnensores fractales y su relacion con el contexto.
+2. Almacenar la inteligencia como knowledge base que deber ser utilizar para de forma recursiva obtener la inteligencia de los tensores fractales.
+3. Extender la inteligencia a nuevos tensores fractales y contextos en base a dinamicas y devolverlo como output al usuario.
+
+PRINCIPIOS DE DESARROLLO:
+1. Simplicidad, el codigo nunca debe basar en cadenas larga de if and else. Tienes que ser elegante y en todo caso bascar soluciones recusivas/Fracta.
+2. Autosimilitud. El codigo debe buscar que todos los mecanimso de emergencia y aprendizaje de relgas sigan patrones similares en cada uno de sus componentes
+3. Reversibilidad triple. El codigo de transcendiencia, extension y aprendizaje, debe tener la misma logica pero en direccion inversa.
+
+Cada uno de los elementos del sistema deber usar el trigate, como atomo fundamental de la logica ternaria.
+
+Los tensores fractales son la entrada del sistema, se analizan desde el transcenders, se analizar tensores de 3 en tres  que realiza una triple accion:
+
+1. Obtiene la relacion entre los tensores fractales y su contexto.
+2. Emerge los tensores fractales base a un nivel superior.
+3. ?????
+
+
+La informacion de relaciones obtenidas por el transceder pasa al extender que se encarga de reconstruir los tensores apartir de 
+
+Una vez el tensor llega al sinteizarse en un solo tensor, pasa al extender, que realiza la extension de los tensores fractales a partir de la informacion de la KB y el tensor sintetizado.
+
+Una vez el ciclo esta completo, se puede realizar un test de integridad y coherencia del flujo de trabajo. De eso se encarga el armonizador, un comprobando que el sistema esta armonizado y los tenosres de salida so coherentes.
+Si no es asi inicia un proces de correccion o armonizacion, en el que se incia un ciclo de recurisova de prueba hasta que el sistema es coherente:
+1. En primer lugar busca una correccion de los tensores fractales.
+2. Si no es posible, busca una correccion de las relaciones.
+3. Si no es posible, busca una correccion de los valores del sistema.
+
+Los tensores fractales son los que aportan la inteligencia al sistema.  Esta formado por vectores ternarios de 3 dimensiones, que representan la relacion entre los valores de las dimensiones y su contexto.
+Cada valor dimensional represnta la forma, la estructura y la funcion del vector.
+Cada valor dimensional esta compuesto por 3trits (0, 1, None) que representan la relacion entre los valores de las dimensiones y su contexto.
+
+Cada valor dimensional tiene una doble funcion: Por un lado representa el valor de la dimension y por otro identifica el espacion dimensional inferior.
+Cada valor dimensional tiene asocidado se vector inferior. Los aximoas del espacio inferior depende de valor de la dimension superior.
+
+La forma de tensor es 1 3 9 donde cada nivel es un vector de 3 dimensiones. Cada ima de las dimensione represtan la forma, la estructura y la funcion del elemento.
+
+
+
+Documentacion extensas para seguir en : documentation/documentation.txt
+
+
+'''
+
+
+
 # === Reversibilidad completa en InverseEvolver (jerárquica) ===
 class InverseEvolver:
     # ...existing code...
@@ -231,49 +297,6 @@ f_id.inverse = f_id
 # M_learned = aurora_triage_aprendizaje(A, B, R, [f_not, f_inc, f_id])
 # B_deduced = aurora_triage_deduccion(M, R, A, known_is_A=True)
 
-'''
-NO BORRAR ESTA NOTAS:
-librereria trinity-3: Classes pare el nuecleo de modelo Aurora de inteligencia electronica
-El nucleo hacer 3 operaciones fundamentales:
-1. Obtner la inteligencia de la realcion entre los valores de las dimension de los tnensores fractales y su relacion con el contexto.
-2. Almacenar la inteligencia como knowledge base que deber ser utilizar para de forma recursiva obtener la inteligencia de los tensores fractales.
-3. Extender la inteligencia a nuevos tensores fractales y contextos en base a dinamicas y devolverlo como output al usuario.
-
-PRINCIPIOS DE DESARROLLO:
-1. Simplicidad, el codigo nunca debe basar en cadenas larga de if and else. Tienes que ser elegante y en todo caso bascar soluciones recusivas/Fracta.
-2. Autosimilitud. El codigo debe buscar que todos los mecanimso de emergencia y aprendizaje de relgas sigan patrones similares en cada uno de sus componentes
-3. Reversibilidad triple. El codigo de transcendiencia, extension y aprendizaje, debe tener la misma logica pero en direccion inversa.
-
-Cada uno de los elementos del sistema deber usar el trigate, como atomo fundamental de la logica ternaria.
-
-Los tensores fractales son la entrada del sistema, se analizan desde el transcenders, se analizar tensores de 3 en tres  que realiza una triple accion:
-
-1. Obtiene la relacion entre los tensores fractales y su contexto.
-2. Emerge los tensores fractales base a un nivel superior.
-3. ?????
-
-
-La informacion de relaciones obtenidas por el transceder pasa al extender que se encarga de reconstruir los tensores apartir de 
-
-Una vez el tensor llega al sinteizarse en un solo tensor, pasa al extender, que realiza la extension de los tensores fractales a partir de la informacion de la KB y el tensor sintetizado.
-
-Una vez el ciclo esta completo, se puede realizar un test de integridad y coherencia del flujo de trabajo. De eso se encarga el armonizador, un comprobando que el sistema esta armonizado y los tenosres de salida so coherentes.
-Si no es asi inicia un proces de correccion o armonizacion, en el que se incia un ciclo de recurisova de prueba hasta que el sistema es coherente:
-1. En primer lugar busca una correccion de los tensores fractales.
-2. Si no es posible, busca una correccion de las relaciones.
-3. Si no es posible, busca una correccion de los valores del sistema.
-
-Los tensores fractales son los que aportan la inteligencia al sistema.  Esta formado por vectores ternarios de 3 dimensiones, que representan la relacion entre los valores de las dimensiones y su contexto.
-Cada valor dimensional represnta la forma, la estructura y la funcion del vector.
-Cada valor dimensional esta compuesto por 3trits (0, 1, None) que representan la relacion entre los valores de las dimensiones y su contexto.
-
-Cada valor dimensional tiene una doble funcion: Por un lado representa el valor de la dimension y por otro identifica el espacion dimensional inferior.
-Cada valor dimensional tiene asocidado se vector inferior. Los aximoas del espacio inferior depende de valor de la dimension superior.
-
-La forma de tensor es 1 3 9 donde cada nivel es un vector de 3 dimensiones. Cada ima de las dimensione represtan la forma, la estructura y la funcion del elemento.
-
-
-'''
 
 # ===================== AUTOCURACIÓN: HOT-FIX, REAXIOMATIZACIÓN Y CONSEJO TERNARIO =====================
 
@@ -358,15 +381,27 @@ class Armonizador:
                 score += 1
         return AmbiguityScore(score)
 
+    _neighbor_mask_cache = {}
     def _microshift(self, vec: Vector, archetype: Vector) -> Vector:
         """
         Microshift recursivo con poda inteligente y logging estructurado.
         Explora vecinos ternarios de vec, buscando el de menor ambigüedad respecto a archetype.
         Early exit si score==0. Usa un set para evitar repeticiones.
+        Cachea los masks de vecinos por longitud y solo explora ±1 donde hay NULLs.
         """
         seen = set()
         best = vec
         best_score = self.ambiguity_score(vec, archetype)
+
+        def neighbor_masks(length):
+            if length not in self._neighbor_mask_cache:
+                masks = []
+                for i in range(length):
+                    mask = [0]*length
+                    mask[i] = 1
+                    masks.append(mask)
+                self._neighbor_mask_cache[length] = masks
+            return self._neighbor_mask_cache[length]
 
         def dfs(v):
             nonlocal best, best_score
@@ -380,13 +415,13 @@ class Armonizador:
                 best, best_score = v.copy(), score
                 if best_score == 0:
                     return
-            # Explora vecinos inmediatos (solo cambia un valor a la vez)
+            # Solo explora ±1 donde hay None
             for i in range(len(v)):
-                if v[i] is None:
+                if v[i] is not None:
                     continue
                 for delta in (-1, 1):
                     nv = v.copy()
-                    nv[i] = max(0, min(1, v[i]+delta))
+                    nv[i] = 0 if delta == -1 else 1
                     dfs(nv)
 
         dfs(list(vec))
@@ -996,13 +1031,23 @@ class _SingleUniverseKB:
         if name: self.name_index[name] = archetype_tensor
         return True
 
-    def find_archetype_by_ms(self, Ms_query: List[int]) -> Optional[list]:
-        """Busca arquetipos por su clave Ms (vector raíz, normalizado a 3 ints). Devuelve lista o None."""
-        return self.ms_index.get(tuple(Ms_query[:3]))
+    def find_archetype_by_ms(self, Ms_query: List[int]) -> list:
+        """Busca arquetipos por su clave Ms (vector raíz, normalizado a 3 ints). Devuelve siempre lista."""
+        res = self.ms_index.get(tuple(Ms_query[:3]))
+        if res is None:
+            return []
+        if isinstance(res, list):
+            return res
+        return [res]
 
-    def find_archetype_by_ss(self, Ss_query: List[int]) -> Optional[list]:
-        """Busca arquetipos por su clave Ss (memoria factual, normalizado a 3 ints). Devuelve lista o None."""
-        return self.ss_index.get(tuple(Ss_query[:3]))
+    def find_archetype_by_ss(self, Ss_query: List[int]) -> list:
+        """Busca arquetipos por su clave Ss (memoria factual, normalizado a 3 ints). Devuelve siempre lista."""
+        res = self.ss_index.get(tuple(Ss_query[:3]))
+        if res is None:
+            return []
+        if isinstance(res, list):
+            return res
+        return [res]
 
     def find_archetype_by_name(self, name: str) -> Optional["FractalTensor"]:
         """Busca un arquetipo por su nombre asignado."""
@@ -1029,6 +1074,9 @@ class _SingleUniverseKB:
                 break
 
 class FractalKnowledgeBase:
+    def add_archetype(self, space_id: str, name: str, archetype_tensor: "FractalTensor", Ss: list, **kwargs) -> bool:
+        """Delegado: añade un arquetipo fractal al universo correcto."""
+        return self._get_space(space_id).add_archetype(archetype_tensor, Ss, name=name, **kwargs)
     def store_model(self, space_id: str, model_name: str, model_data: dict):
         return self._get_space(space_id).store_model(model_name, model_data)
 
@@ -1036,89 +1084,14 @@ class FractalKnowledgeBase:
         return self._get_space(space_id).get_model(model_name)
     """Gestor de múltiples universos de conocimiento fractal."""
 
-    from threading import Lock
-    def __init__(self):
-        self.universes: Dict[str, _SingleUniverseKB] = {}
-        self._lock = self.Lock()
 
-    def _get_space(self, space_id: str = 'default') -> _SingleUniverseKB:
+    def __init__(self):
+        self.universes = {}
+
+    def _get_space(self, space_id: str = 'default'):
         if space_id not in self.universes:
             self.universes[space_id] = _SingleUniverseKB()
         return self.universes[space_id]
-
-    def add_archetype(self, space_id: str, name: str, archetype_tensor: "FractalTensor", Ss: List[int], **kwargs) -> bool:
-        """Añade un arquetipo fractal con nombre y Ss al universo correcto."""
-        with self._lock:
-            return self._get_space(space_id).add_archetype(archetype_tensor, Ss, name=name, **kwargs)
-
-    def find_archetype_by_ms(self, space_id: str, Ms_query: List[int]) -> Optional["FractalTensor"]:
-        """Busca un arquetipo fractal por Ms en el universo correcto."""
-        with self._lock:
-            return self._get_space(space_id).find_archetype_by_ms(Ms_query)
-
-    def find_archetype_by_ss(self, space_id: str, Ss_query: List[int]) -> Optional["FractalTensor"]:
-        """Busca un arquetipo fractal por Ss en el universo correcto."""
-        with self._lock:
-            return self._get_space(space_id).find_archetype_by_ss(Ss_query)
-
-# === Pruebas unitarias (ejemplo) ===
-def test_fractal_tensor_init():
-    ft = FractalTensor(nivel_3=[[1,0,1]])
-    assert len(ft.nivel_3) == 3
-    assert len(ft.nivel_9) == 9
-    assert len(ft.nivel_27) == 27
-    assert ft.nivel_3[0] == [1,0,1]
-
-def test_trigate_infer():
-    trigate = Trigate()
-    assert trigate.infer([1,0,1], [0,1,1], [1,1,1]) == [None, None, 0]
-    
-    def find_archetype_by_name(self, space_id: str, name: str) -> Optional["FractalTensor"]:
-        """Busca un arquetipo fractal por nombre en el universo correcto."""
-        return self._get_space(space_id).find_archetype_by_name(name)
-    
-    # ------------------------------------------------------------------
-    #  API LEGACY – requerido por tests antiguos (Aurora Integral)
-    # ------------------------------------------------------------------
-    # ------------------------------------------------------------------
-    #  API LEGACY – requerido por tests integrales antiguos
-    # ------------------------------------------------------------------
-    def add_entry(
-        self,
-        A,
-        B,
-        C,
-        M_emergent,
-        MetaM,
-        R_validos=None,            # ← OPCIONAL
-        transcender_id=None,
-        space_id: str = "default"
-    ):
-        """
-        Guarda una entrada completa (A, B, C, M, MetaM, R) y la indexa
-        mínimamente para trazabilidad.  Todos los campos, salvo los tres
-        primeros, son opcionales.
-        """
-        if not hasattr(self, "_entries"):
-            self._entries = []
-
-        self._entries.append(
-            {
-                "A": A,
-                "B": B,
-                "C": C,
-                "M_emergent": M_emergent,
-                "MetaM": MetaM,
-                "R_validos": R_validos,
-                "transcender_id": transcender_id,
-                "timestamp": time.time(),
-            }
-        )
-        # —– opcional: generar un arquetipo “stub” para futuras búsquedas
-        Ms = M_emergent if isinstance(M_emergent, list) else [0, 0, 0]
-        tensor_stub = FractalTensor(nivel_3=[Ms, [None]*3, [None]*3], Ss=Ms)
-        self.add_archetype(space_id, transcender_id or f"entry_{len(self._entries)}", tensor_stub, Ss=Ms)
-        return True
 
     
 
@@ -1167,6 +1140,10 @@ class Extender:
     """
     Orquestador Aurora refactorizado con expertos como métodos internos para
     simplificar el alcance y la gestión de estado.
+
+    Opera como de forma inversa a Evolver, extendiendo el conocimiento fractal
+    a partir de consultas simples y contexto, utilizando expertos para validar, 
+    utiliza trigate de form inversa al transcender.
     """
     def __init__(self, knowledge_base: "FractalKnowledgeBase"):
         self.kb = knowledge_base
@@ -1637,3 +1614,236 @@ if __name__ == "__main__":
     print("\n" + "=" * 80)
     print("🎯 DEMOSTRACIÓN FINALIZADA.")
     print("=" * 80)
+
+################################################################################################
+# ===================== INTEGRACIÓN DE REVERSIBILIDAD Y AUTOSIMILARIDAD ========================
+################################################################################################
+
+# --- UTILIDADES DE IMPUTACIÓN Y VALIDACIÓN ---
+from statistics import mode
+def impute_none(vec, context, tensor=None):
+    """Imputa valores None usando contexto y niveles superiores del tensor."""
+    result = []
+    for i, v in enumerate(vec):
+        if v is not None:
+            result.append(v)
+            continue
+        col = [c[i] for c in context if i < len(c) and c[i] is not None]
+        if tensor:
+            if hasattr(tensor, 'nivel_9') and i < len(tensor.nivel_9):
+                col.extend([x for x in tensor.nivel_9[i] if x is not None])
+            if hasattr(tensor, 'nivel_3') and i < len(tensor.nivel_3[0]):
+                col.append(tensor.nivel_3[0][i % 3])
+        result.append(mode(col) if col else 0)
+    return result
+
+def validate_ternary_input(vec, expected_len=3, name="input"):
+    """Valida y normaliza entradas ternarias."""
+    if not isinstance(vec, (list, tuple)) or len(vec) != expected_len:
+        print(f"Warning: Invalid {name}: {vec}, using default {[0]*expected_len}")
+        return [0] * expected_len
+    return [None if x is None else int(x) % 2 for x in vec]
+
+# --- ESTRATEGIAS DE SELECCIÓN AUTOSIMILARES ---
+def golden_ratio_skip_indices(N, k, trios=3):
+    """Devuelve una lista de índices para formar un trío usando saltos áureos."""
+    phi = (1 + math.sqrt(5)) / 2
+    skip = max(1, int(N / phi))
+    indices = []
+    idx = k
+    for _ in range(trios):
+        indices.append(idx % N)
+        idx = (idx + skip) % N
+    return indices
+
+def fibonacci(n):
+    a, b = 1, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+def fibonacci_stepping_indices(N, k, trios=3, start_step=0):
+    """Devuelve una lista de índices para formar un trío usando pasos de Fibonacci."""
+    indices = []
+    idx = k
+    for i in range(start_step, start_step + trios):
+        step = fibonacci(i)
+        indices.append(idx % N)
+        idx = (idx + step) % N
+    return indices
+
+# --- AJUSTE AUTOSIMILAR (OPCIONAL, SI SE DESEA USAR EN ARMONIZADOR) ---
+class AdjustmentStep:
+    def apply(self, vec, archetype, kb=None):
+        raise NotImplementedError
+
+class MicroShift(AdjustmentStep):
+    def apply(self, vec, archetype, kb=None):
+        return [a if v is None else v for v, a in zip(vec, archetype)]
+
+class Regrewire(AdjustmentStep):
+    def apply(self, vec, archetype, kb=None):
+        if sum(1 for v, a in zip(vec, archetype) if v == a) >= 2:
+            return list(archetype)
+        return vec
+
+class Metatune(AdjustmentStep):
+    def apply(self, vec, archetype, kb=None):
+        if kb is not None:
+            matches = kb.find_archetype_by_ms(archetype)
+            if matches:
+                return matches[0]
+        return vec
+
+# --- TRIAGE FUNCIONAL UNIFICADO (INFERENCIA, APRENDIZAJE, DEDUCCIÓN) ---
+def f_not(x):
+    return 1 - x if x in (0, 1) else 0
+def f_not_inv(x):
+    return 1 - x if x in (0, 1) else 0
+f_not.inverse = f_not_inv
+
+def f_inc(x):
+    return (x + 1) % 2 if x in (0, 1) else 0
+def f_inc_inv(x):
+    return (x - 1) % 2 if x in (0, 1) else 0
+f_inc.inverse = f_inc_inv
+
+def f_id(x):
+    return x
+f_id.inverse = f_id
+
+def aurora_apply_sequence(val, sequence):
+    for func in sequence:
+        val = func(val)
+    return val
+
+def aurora_triage_inferencia(A, B, M):
+    allowed_functions = [f_not, f_inc, f_id]
+    def normalize_ternary_vector(vec, default=[0,0,0]):
+        if not isinstance(vec, (list, tuple)):
+            return default.copy()
+        return [None if x is None else int(x) if x in (0,1) else 0 for x in list(vec)[:3]] + [0]*(3-len(vec))
+    def validate_function_sequence(M, allowed_functions, max_len=2):
+        if not isinstance(M, (list, tuple)) or len(M) != 3:
+            return [[f_id] for _ in range(3)]
+        return [list(seq)[:max_len] if isinstance(seq, (list, tuple)) and all(f in allowed_functions for f in seq) else [f_id] for seq in M[:3]] + [[f_id]]*(3-len(M))
+    A = normalize_ternary_vector(A)
+    B = normalize_ternary_vector(B)
+    M = validate_function_sequence(M, allowed_functions)
+    R = []
+    for i in range(3):
+        rA = aurora_apply_sequence(A[i], M[i])
+        rB = aurora_apply_sequence(B[i], M[i])
+        if rA is not None and rB is not None:
+            R.append(rA + rB)
+        else:
+            R.append(0)
+    return R
+
+def aurora_triage_aprendizaje(A, B, R, funciones_permitidas, max_len=2):
+    import itertools
+    def normalize_ternary_vector(vec, default=[0,0,0]):
+        if not isinstance(vec, (list, tuple)):
+            return default.copy()
+        return [None if x is None else int(x) if x in (0,1) else 0 for x in list(vec)[:3]] + [0]*(3-len(vec))
+    A = normalize_ternary_vector(A)
+    B = normalize_ternary_vector(B)
+    R = normalize_ternary_vector(R)
+    M = []
+    for i in range(3):
+        found = False
+        for l in range(1, max_len+1):
+            for seq in itertools.product(funciones_permitidas, repeat=l):
+                rA = aurora_apply_sequence(A[i], seq)
+                rB = aurora_apply_sequence(B[i], seq)
+                if rA is not None and rB is not None and rA + rB == R[i]:
+                    M.append(list(seq))
+                    found = True
+                    break
+            if found:
+                break
+        if not found:
+            M.append([f_id])
+    return M
+
+def aurora_triage_deduccion(M, R, known, known_is_A=True):
+    allowed_functions = [f_not, f_inc, f_id]
+    def normalize_ternary_vector(vec, default=[0,0,0]):
+        if not isinstance(vec, (list, tuple)):
+            return default.copy()
+        return [None if x is None else int(x) if x in (0,1) else 0 for x in list(vec)[:3]] + [0]*(3-len(vec))
+    def validate_function_sequence(M, allowed_functions, max_len=2):
+        if not isinstance(M, (list, tuple)) or len(M) != 3:
+            return [[f_id] for _ in range(3)]
+        return [list(seq)[:max_len] if isinstance(seq, (list, tuple)) and all(f in allowed_functions for f in seq) else [f_id] for seq in M[:3]] + [[f_id]]*(3-len(M))
+    R = normalize_ternary_vector(R)
+    known = normalize_ternary_vector(known)
+    M = validate_function_sequence(M, allowed_functions)
+    deduced = []
+    for i in range(3):
+        val = R[i] - aurora_apply_sequence(known[i], M[i]) if R[i] is not None and known[i] is not None else 0
+        for func in reversed(M[i]):
+            if hasattr(func, 'inverse'):
+                val = func.inverse(val)
+        deduced.append(val if val in (0,1,None) else 0)
+    return deduced
+
+# --- INVERSE EVOLVER: REVERSIBILIDAD FRACTAL ---
+class InverseEvolver:
+    """Reconstruye tensores originales desde sintetizados usando lógica inversa."""
+    def __init__(self, knowledge_base=None):
+        self.kb = knowledge_base
+        self.trigate = Trigate()
+        self.armonizador = Armonizador(knowledge_base=knowledge_base) if knowledge_base else None
+
+    def reconstruct_vectors(self, Ms):
+        """Deduce A y B desde Ms usando lógica inversa del Trigate."""
+        A, B = [], []
+        for m in Ms:
+            if m == 0:
+                A.append(0)
+                B.append(0)
+            elif m == 1:
+                A.append(1)
+                B.append(0)
+            else:
+                A.append(None)
+                B.append(None)
+        return A, B
+
+    def reconstruct_fractal(self, synthesized):
+        """Reconstruye tres tensores fractales desde uno sintetizado (niveles 3, 9, 27)."""
+        ms_key = synthesized.nivel_3[0]
+        A_l3, B_l3 = self.reconstruct_vectors(ms_key)
+        C_l3 = [TernaryLogic.ternary_xor(a, b) for a, b in zip(A_l3, B_l3)]
+
+        def reconstruct_level(level_vectors):
+            A_vectors, B_vectors, C_vectors = [], [], []
+            for vec in level_vectors:
+                a, b = self.reconstruct_vectors(vec)
+                c = [TernaryLogic.ternary_xor(x, y) for x, y in zip(a, b)]
+                A_vectors.append(a)
+                B_vectors.append(b)
+                C_vectors.append(c)
+            return A_vectors, B_vectors, C_vectors
+
+        A_l9, B_l9, C_l9 = reconstruct_level(synthesized.nivel_9)
+        A_l27, B_l27, C_l27 = reconstruct_level(synthesized.nivel_27)
+
+        def create_tensor(n3, n9, n27, ss):
+            tensor = FractalTensor(nivel_3=n3, nivel_9=n9, nivel_27=n27)
+            if self.armonizador:
+                harm = self.armonizador.harmonize(
+                    tensor.nivel_3[0],
+                    archetype=tensor.nivel_3[0],
+                    space_id="inverse"
+                )
+                tensor.nivel_3[0] = harm["output"]
+            tensor.Ss = ss
+            return tensor
+
+        return [
+            create_tensor([A_l3], A_l9, A_l27, ss="A"),
+            create_tensor([B_l3], B_l9, B_l27, ss="B"),
+            create_tensor([C_l3], C_l9, C_l27, ss="C")
+        ]
