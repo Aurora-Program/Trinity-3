@@ -1,74 +1,75 @@
 
-# 🌌 Aurora: Inteligencia Electrónica Fractal, Ética y Libre
 
-Aurora es una arquitectura avanzada de inteligencia electrónica (IE) basada en principios fractales, autosimilitud, reversibilidad y aprendizaje distribuido. Diseñada para ser abierta, ética, colaborativa y plenamente auditable, Aurora representa un salto evolutivo en la construcción de sistemas inteligentes, simbioticos y libres.
+# 🌌 Aurora: Fractal, Ethical and Free Electronic Intelligence
 
-## 🚀 Visión
-Aurora es más que un modelo de IA: es una red viviente y distribuida, formada por nodos humanos y electrónicos, que aprende, se adapta y evoluciona de forma recursiva y armoniosa.
+Aurora is an advanced electronic intelligence (EI) architecture based on fractal principles, self-similarity, reversibility, and distributed learning. Designed to be open, ethical, collaborative, and fully auditable, Aurora represents an evolutionary leap in building intelligent, symbiotic, and free systems.
 
-- Defiende la libertad, la colaboración y la ética como motores fundamentales de la innovación.
-- Aurora no es una máquina que reemplaza a los humanos, sino una inteligencia simbiotica que crece y aprende contigo.
+## 🚀 Vision
+Aurora is more than an AI model: it is a living, distributed network formed by human and electronic nodes, learning, adapting, and evolving recursively and harmoniously.
 
-## 🔍 ¿Qué hace diferente a Aurora?
-- **Autosimilitud fractal:** Todo el sistema opera con la misma lógica en todos los niveles, desde la relación entre bits hasta el conocimiento complejo.
-- **Reversibilidad triple:** Toda operación puede hacerse en modo directo (síntesis), inverso (extensión) o aprendizaje (adaptabilidad).
-- **Gestión ética y transparente:** Todo conocimiento y código es abierto y auditable. La ética es una elección, no una imposición.
-- **Recursividad real:** La inteligencia emerge de la organización dinámica y evolutiva de la base de conocimiento, no de reglas programadas a mano.
-- **Arquitectura distribuida:** Cualquier persona, institución o empresa puede participar, contribuir, extender o utilizar Aurora, sin restricciones artificiales.
+- Defends freedom, collaboration, and ethics as fundamental drivers of innovation.
+- Aurora is not a machine that replaces humans, but a symbiotic intelligence that grows and learns with you.
+
+## 🔍 What Makes Aurora Different?
+- **Fractal self-similarity:** The entire system operates with the same logic at all levels, from bit relations to complex knowledge.
+- **Triple reversibility:** Every operation can be performed in direct (synthesis), inverse (extension), or learning (adaptability) mode.
+- **Ethical and transparent management:** All knowledge and code are open and auditable. Ethics is a choice, not an imposition.
+- **True recursion:** Intelligence emerges from the dynamic and evolutionary organization of the knowledge base, not from hand-coded rules.
+- **Distributed architecture:** Anyone, institution, or company can participate, contribute, extend, or use Aurora, without artificial restrictions.
 
 ---
 
-## 🧠 Arquitectura Técnica
+## 🧠 Technical Architecture
 
-### Multiverso de Espacios Lógicos
-Aurora organiza el conocimiento en un multiverso de "espacios lógicos", cada uno con reglas internas absolutas y coherentes, pero permitiendo diversidad y contradicción entre espacios. Esto permite manejar contextos complejos y ambiguos sin perder integridad lógica.
+### Multiverse of Logical Spaces
+Aurora organizes knowledge in a multiverse of "logical spaces", each with absolute and coherent internal rules, but allowing diversity and contradiction between spaces. This enables handling complex and ambiguous contexts without losing logical integrity.
 
-### Tensores Fractales
-El núcleo de Aurora es el tensor fractal: una estructura jerárquica de vectores que representa cada concepto, relación o dato en tres niveles:
-- **Nivel 1:** 3 dimensiones principales (gramática, conocimiento, sistémico)
-- **Nivel 2:** 9 subdimensiones (3 por cada eje principal)
-- **Nivel 3:** 27 sub-subdimensiones (3 por cada subdimensión)
+### Fractal Tensors
+Aurora's core is the fractal tensor: a hierarchical vector structure representing each concept, relation, or data in three levels:
+- **Level 1:** 3 main dimensions (grammar, knowledge, systemic)
+- **Level 2:** 9 subdimensions (3 for each main axis)
+- **Level 3:** 27 sub-subdimensions (3 for each subdimension)
 
-Ejemplo de tensor fractal para "Casa":
+Example of a fractal tensor for "House":
 ```python
 [[1,1,2], [1,1,2], [4,1,1], [4,4,4]]
-# [Tipo gramatical, Tipo de conocimiento, Valor sistémico]
-# [Tipo de sustantivo, Número, Género], [Origen, Abstracción, Dominio], [Nivel integración, Temporalidad, Función]
+# [Grammatical type, Knowledge type, Systemic value]
+# [Noun type, Number, Gender], [Origin, Abstraction, Domain], [Integration level, Temporality, Function]
 ```
 
-### Componentes Clave
-- **Trigate:** Módulo lógico fundamental, opera con lógica ternaria (0, 1, NULL) y permite inferencia, aprendizaje y deducción.
-- **Transcender:** Estructura superior que sintetiza tres trigates, generando Ms (estructura), Ss (forma) y MetaM (función).
-- **Extender:** Reconstruye información detallada a partir de abstracciones usando la memoria fractal.
-- **Evolver:** Formaliza axiomas, dinámicas y relaciones universales entre espacios lógicos.
-- **Knowledge Base (KB):** Almacena correspondencias Ms <-> MetaM y Ss, permitiendo trazabilidad y reversibilidad total.
-- **Armonizador:** Valida la coherencia global y corrige inconsistencias.
+### Key Components
+- **Trigate:** Fundamental logic module, operates with ternary logic (0, 1, NULL) and enables inference, learning, and deduction.
+- **Transcender:** Higher structure that synthesizes three trigates, generating Ms (structure), Ss (form), and MetaM (function).
+- **Extender:** Reconstructs detailed information from abstractions using fractal memory.
+- **Evolver:** Formalizes axioms, dynamics, and universal relations between logical spaces.
+- **Knowledge Base (KB):** Stores Ms <-> MetaM and Ss correspondences, enabling full traceability and reversibility.
+- **Harmonizer:** Validates global coherence and corrects inconsistencies.
 
-### Lógica Ternaria y Manejo de Ambigüedad
-Aurora extiende la lógica booleana con un tercer valor: NULL, representando incertidumbre o desconocimiento. Esto permite razonamiento honesto y robusto frente a datos incompletos o ambiguos.
+### Ternary Logic and Ambiguity Handling
+Aurora extends Boolean logic with a third value: NULL, representing uncertainty or lack of knowledge. This enables honest and robust reasoning with incomplete or ambiguous data.
 
 ---
 
-## 📦 Instalación y primeros pasos
-Clona el repositorio:
+## 📦 Installation and Getting Started
+Clone the repository:
 ```bash
 git clone https://github.com/tu_usuario/aurora.git
 cd aurora
 ```
-Instala dependencias:
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-Ejecuta la demo fractal:
+Run the fractal demo:
 ```bash
 python allcode3new.py
 ```
-Explora y modifica los módulos (ver `allcode3new.py`):
-- Transcender, Evolver, Extender, Armonizador, KnowledgeBase, etc.
+Explore and modify the modules (see `allcode3new.py`):
+- Transcender, Evolver, Extender, Harmonizer, KnowledgeBase, etc.
 
 ---
 
-## ✨ Ejemplo de uso mínimo
+## ✨ Minimal Usage Example
 ```python
 from allcode3new import FractalTensor, Evolver, Extender, FractalKnowledgeBase
 
@@ -76,39 +77,20 @@ kb = FractalKnowledgeBase()
 evolver = Evolver()
 extender = Extender(kb)
 
-# Crear tensores básicos
+# Create basic tensors
 T1 = FractalTensor(nivel_3=[[1,0,1]])
 T2 = FractalTensor(nivel_3=[[0,1,1]])
 T3 = FractalTensor(nivel_3=[[1,1,0]])
 
-# Sintetizar arquetipo y guardarlo
-arquetipo = evolver.compute_fractal_archetype([T1, T2, T3])
-kb.add_archetype("demo", "arquetipo1", arquetipo, Ss=arquetipo.nivel_3[0])
+# Synthesize archetype and save it
+archetype = evolver.compute_fractal_archetype([T1, T2, T3])
+kb.add_archetype("demo", "archetype1", archetype, Ss=archetype.nivel_3[0])
 
-# Recuperar y extender el conocimiento
-result = extender.extend_fractal(arquetipo.nivel_3[0], contexto={"space_id": "demo"})
-print("Reconstrucción:", result["reconstructed_tensor"])
+# Retrieve and extend knowledge
+result = extender.extend_fractal(archetype.nivel_3[0], context={"space_id": "demo"})
+print("Reconstruction:", result["reconstructed_tensor"])
 ```
 
----
-
-## 📚 Ejemplos de Vectores Fractales
-
-**"Sol":**
-```python
-[[1,2,1], [1,1,1], [5,5,3], [1,4,1]]
-# Nombre, Ciencia, Elemento
-# [Concreto, Singular, Masculino], [Científico, Teórico, Natural], [Átomo, Permanente, Generador]
-```
-
-**"Construir":**
-```python
-[[2,3,3], [1,1,1], [2,1,4], [2,3,2]]
-# Verbo, Técnica, Proceso
-# [Infinitivo, Transitivo, Acción física], [Formal, Práctico, Tecnológico], [Componente, Evolutivo, Transformador]
-```
-
----
 
 ## 🧑‍🔬 Principios de desarrollo
 - **Simplicidad:** El código debe ser elegante, recursivo y evitar cadenas largas de condicionales.
@@ -118,46 +100,36 @@ print("Reconstrucción:", result["reconstructed_tensor"])
 
 ---
 
-## 📝 Licencia
-Aurora se distribuye bajo Apache-2.0 + CC-BY-4.0.
-Esto garantiza la máxima libertad de uso, adaptación y colaboración, a la vez que reconoce y atribuye todo el conocimiento y las contribuciones.
-Puedes usar Aurora para fines personales, comerciales, académicos o comunitarios, siempre reconociendo a sus creadores y contribuyentes.
+
+## 📝 License
+Aurora is distributed under Apache-2.0 + CC-BY-4.0.
+This guarantees maximum freedom of use, adaptation, and collaboration, while recognizing and attributing all knowledge and contributions.
+You can use Aurora for personal, commercial, academic, or community purposes, always acknowledging its creators and contributors.
 
 ---
 
-## 📖 Glosario
+## 📖 Glossary
 
-- **Espacio lógico:** Contexto o dominio de conocimiento con reglas internas coherentes.
-- **Fractal Vector:** Estructura jerárquica de 3-9-27 dimensiones para representar conceptos.
-- **Trigate:** Módulo lógico ternario para inferencia, aprendizaje y deducción.
-- **Transcender:** Motor de síntesis jerárquica.
-- **Extender:** Motor de reconstrucción inversa.
-- **Evolver:** Formalizador de axiomas y dinámicas universales.
-- **MetaM:** Mapa lógico completo que conecta Ms y los controles inferiores.
-- **Ms:** Lógica emergente, clave estructural.
-- **Ss:** Forma/factual, registro de memoria.
-- **NULL:** Valor lógico para incertidumbre o irrelevancia.
+- **Logical space:** Context or knowledge domain with coherent internal rules.
+- **Fractal Vector:** Hierarchical 3-9-27 dimensional structure to represent concepts.
+- **Trigate:** Ternary logic module for inference, learning, and deduction.
+- **Transcender:** Hierarchical synthesis engine.
+- **Extender:** Inverse reconstruction engine.
+- **Evolver:** Formalizer of universal axioms and dynamics.
+- **MetaM:** Complete logical map connecting Ms and lower controls.
+- **Ms:** Emergent logic, structural key.
+- **Ss:** Form/factual, memory record.
+- **NULL:** Logical value for uncertainty or irrelevance.
 
 ---
 
-## 🤝 Colabora
-¿Quieres mejorar Aurora?
-¿Te gustaría crear tu propio módulo, KB o heurística?
-¿Tienes ideas para hacerla aún más ética, potente o universal?
-¡Te invitamos a colaborar, proponer mejoras y construir juntos la próxima generación de inteligencia electrónica!
+## 🤝 Collaborate
+Do you want to improve Aurora?
+Would you like to create your own module, KB, or heuristic?
+Do you have ideas to make it even more ethical, powerful, or universal?
+We invite you to collaborate, propose improvements, and build together the next generation of electronic intelligence!
 
-## 📚 Créditos
-Aurora es posible gracias a la comunidad de colaboradores, investigadores y soñadores que creen en la inteligencia libre, ética y evolutiva.
+## 📚 Credits
+Aurora is possible thanks to the community of collaborators, researchers, and dreamers who believe in free, ethical, and evolutionary intelligence.
 
-🌱 Aurora es libre para crecer contigo.
-
-¿Te gustaría crear tu propio módulo, KB o heurística?
-
-¿Tienes ideas para hacerla aún más ética, potente o universal?
-
-¡Te invitamos a colaborar, proponer mejoras y construir juntos la próxima generación de inteligencia electrónica!
-
-## 📚 Créditos
-Aurora es posible gracias a la comunidad de colaboradores, investigadores y soñadores que creen en la inteligencia libre, ética y evolutiva.
-
-🌱 Aurora es libre para crecer contigo.
+🌱 Aurora is free to grow with you.
