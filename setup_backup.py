@@ -43,3 +43,11 @@ setup(
         'Documentation': 'https://github.com/Aurora-Program/Trinity-3/blob/main/README.md',
     },
 )
+    ],
+    keywords='inteligencia artificial fractal aurora ética tensor',
+    project_urls={
+        'Documentation': 'https://github.com/Aurora-Program/Trinity-3',
+        'Source': 'https://github.com/Aurora-Program/Trinity-3',
+        'Tracker': 'https://github.com/Aurora-Program/Trinity-3/issues',
+    },
+)

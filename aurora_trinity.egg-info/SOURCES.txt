@@ -7,6 +7,8 @@ aurora_trinity.egg-info/PKG-INFO
 aurora_trinity.egg-info/SOURCES.txt
 aurora_trinity.egg-info/dependency_links.txt
 aurora_trinity.egg-info/top_level.txt
+tests/test.py
 tests/test_basics.py
-trinity-3/__init__.py
-trinity-3/core.py
+trinity_3/__init__.py
+trinity_3/core.py
+trinity_3/trigate.py
