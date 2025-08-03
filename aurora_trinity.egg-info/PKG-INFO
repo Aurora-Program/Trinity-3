@@ -1,21 +1,29 @@
 Metadata-Version: 2.4
 Name: aurora-trinity
-Version: 0.1.0b1
-Summary: Aurora Trinity-3: Inteligencia Electrónica Fractal, Ética y Libre
+Version: 1.0.0
+Summary: Aurora Trinity-3: Fractal, Ethical, Free Electronic Intelligence
 Home-page: https://github.com/Aurora-Program/Trinity-3
 Author: Aurora Alliance
 Author-email: contacto@aurora-program.org
 License: Apache-2.0
-Project-URL: Documentation, https://github.com/Aurora-Program/Trinity-3
+Project-URL: Bug Reports, https://github.com/Aurora-Program/Trinity-3/issues
 Project-URL: Source, https://github.com/Aurora-Program/Trinity-3
-Project-URL: Tracker, https://github.com/Aurora-Program/Trinity-3/issues
-Keywords: inteligencia artificial fractal aurora ética tensor
-Classifier: Development Status :: 3 - Alpha
+Project-URL: Documentation, https://github.com/Aurora-Program/Trinity-3/blob/main/README.md
+Keywords: ai,ternary-logic,fractal,neural-networks,knowledge-base,ethical-ai
+Classifier: Development Status :: 5 - Production/Stable
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Operating System :: OS Independent
 Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Developers
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Natural Language :: English
 Classifier: Natural Language :: Spanish
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
