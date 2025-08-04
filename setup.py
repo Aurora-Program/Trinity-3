@@ -13,7 +13,7 @@ setup(
     author_email='contacto@aurora-program.org',
     url='https://github.com/Aurora-Program/Trinity-3',
     license='Apache-2.0',
-    packages=['trinity_3'],
+    packages=find_packages(),
     python_requires='>=3.8',
     install_requires=[
         # No external dependencies - pure Python implementation
@@ -27,7 +27,6 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
-        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
@@ -40,6 +39,6 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/Aurora-Program/Trinity-3/issues',
         'Source': 'https://github.com/Aurora-Program/Trinity-3',
-        'Documentation': 'https://github.com/Aurora-Program/Trinity-3/blob/main/README.md',
+        'Documentation': 'https://github.com/Aurora-Program/Trinity-3/blob/main/Documentation/documentation.md',
     },
 )
