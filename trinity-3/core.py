@@ -3,6 +3,8 @@
 import hashlib
 import random
 
+# Import the complete Trigate implementation
+from .trigate import Trigate
 
 PHI = 0.6180339887
 

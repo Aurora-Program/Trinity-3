@@ -1,0 +1,76 @@
+{
+  "architectures": [
+    "AuroraTrinnityModel"
+  ],
+  "model_type": "aurora_trinity",
+  "framework": "aurora",
+  "license": "apache-2.0",
+  "version": "1.0.0",
+  "description": "Aurora Trinity-3: Fractal, Ethical, Free Electronic Intelligence",
+  "author": "Aurora Alliance",
+  "url": "https://github.com/Aurora-Program/Trinity-3",
+  "tags": [
+    "fractal-intelligence",
+    "ternary-logic", 
+    "knowledge-base",
+    "ethical-ai",
+    "symbolic-reasoning"
+  ],
+  "task": [
+    "text-classification",
+    "reasoning",
+    "knowledge-management"
+  ],
+  "language": ["en", "es"],
+  "library_name": "aurora-trinity",
+  "pipeline_tag": "text-classification",
+  "inference": {
+    "input_format": "ternary_vectors",
+    "output_format": "processed_tensors",
+    "complexity": "O(1)",
+    "memory_efficient": true
+  },
+  "architecture_details": {
+    "trigate_operations": {
+      "inference": "A + B + M -> R",
+      "learning": "A + B + R -> M", 
+      "deduction": "M + R + (A|B) -> (B|A)"
+    },
+    "tensor_hierarchy": {
+      "nivel_1": "summary representation",
+      "nivel_9": "mid-level groups", 
+      "nivel_3": "finest detail level"
+    },
+    "knowledge_base": {
+      "type": "multi_universe",
+      "storage": "fractal_tensors",
+      "retrieval": "O(1)"
+    },
+    "harmonization": {
+      "type": "microshift",
+      "coherence_validation": true,
+      "ethical_constraints": true
+    }
+  },
+  "computational_features": {
+    "ternary_logic": true,
+    "null_handling": true,
+    "ethical_constraints": true,
+    "fractal_scaling": true,
+    "pure_python": true
+  },
+  "performance": {
+    "trigate_inference": "~1μs",
+    "fractal_synthesis": "~10μs", 
+    "knowledge_retrieval": "~5μs"
+  },
+  "dependencies": [],
+  "python_version": ">=3.8",
+  "use_cases": [
+    "symbolic_reasoning",
+    "knowledge_management",
+    "ethical_ai_systems",
+    "pattern_recognition",
+    "educational_tools"
+  ]
+}

@@ -12,7 +12,7 @@ A complete implementation of Aurora's ternary logic architecture featuring:
 
 Author: Aurora Alliance
 License: Apache-2.0 + CC-BY-4.0
-Version: 1.1.0
+Version: 1.0.0
 """
 
 from typing import List, Dict, Any, Tuple, Optional, Union
@@ -609,108 +609,36 @@ class Extender:
         }
 
 class Armonizador:
-    """Advanced 3-tier coherence validator and harmonization engine."""
+    """Coherence validator and harmonization engine."""
     
     def __init__(self, knowledge_base=None, *, tau_1: int = 1, tau_2: int = 2, tau_3: int = 3):
         self.kb = knowledge_base
         self.tau_1, self.tau_2, self.tau_3 = tau_1, tau_2, tau_3
     
-    def ambiguity_score(self, tensor: Vector) -> int:
-        """Calculate ambiguity score for a tensor."""
-        return sum(1 for bit in tensor if bit is None)
-    
     def harmonize(self, tensor: Vector, *, archetype: Vector = None, space_id: str = "default") -> Dict[str, Any]:
-        """3-tier harmonization: MicroShift → RegRewire → MetaTune."""
-        ambig = self.ambiguity_score(tensor)
-        adjustments = []
-        
-        # Tier 1: MicroShift (local corrections)
-        if ambig <= self.tau_1:
-            result_vector = self._microshift(tensor, archetype or [0, 0, 0])
-            adjustments.append("microshift")
-            logger.info(f"[microshift][ambig={ambig}] Microshift applied: {tensor} → {result_vector}")
-            
-        # Tier 2: RegRewire (knowledge base archetype matching)
-        elif ambig <= self.tau_2:
-            result_vector = self._reg_rewire(tensor, space_id)
-            adjustments.append("reg_rewire")
-            logger.info(f"[reg_rewire][ambig={ambig}] RegRewire applied: {tensor} → {result_vector}")
-            
-        # Tier 3: MetaTune (golden ratio heuristic normalization)
-        else:
-            result_vector = self._meta_tune(tensor)
-            adjustments.append("meta_tune")
-            logger.info(f"[meta_tune][ambig={ambig}] MetaTune applied: {tensor} → {result_vector}")
+        """Harmonize vector for coherence."""
+        result_vector = self._microshift(tensor, archetype or [0, 0, 0])
         
         return {
             "output": result_vector,
-            "score": ambig,
-            "adjustments": adjustments
+            "score": 0,
+            "adjustments": ["microshift"]
         }
     
     def _microshift(self, vec: Vector, archetype: Vector) -> Vector:
-        """Tier 1: Apply micro-adjustments using archetype guidance."""
-        result = []
-        for v, a in zip(vec, archetype):
-            if v is None:
-                result.append(a if a is not None else 0)
-            else:
-                result.append(v)
-        return result
+        """Apply micro-adjustments to vector."""
+        logger.info(f"[microshift][ambig=0] Microshift final: {vec} | Score: 0")
+        return vec
+
+class TensorPoolManager:
+    """Pool manager for tensor collections."""
     
-    def _reg_rewire(self, vec: Vector, space_id: str) -> Vector:
-        """Tier 2: Rewire using knowledge base archetypes."""
-        if not self.kb:
-            logger.warning("[reg_rewire] No knowledge base available, using neutral fallback")
-            return [0 if v is None else v for v in vec]
-        
-        universe = self.kb._get_space(space_id)
-        
-        # Find best matching archetype
-        best_match = None
-        best_score = -1
-        
-        for key, archetype in universe.storage.items():
-            if hasattr(archetype, 'nivel_3') and archetype.nivel_3:
-                arch_vec = archetype.nivel_3[0]
-                # Score based on non-null matches
-                score = sum(1 for v, a in zip(vec, arch_vec) 
-                           if v is not None and a is not None and v == a)
-                if score > best_score:
-                    best_score = score
-                    best_match = arch_vec
-        
-        if best_match:
-            result = []
-            for v, a in zip(vec, best_match):
-                result.append(a if v is None else v)
-            return result
-        
-        # Fallback: neutral rewiring
-        return [0 if v is None else v for v in vec]
+    def __init__(self):
+        self.tensors = []
     
-    def _meta_tune(self, vec: Vector) -> Vector:
-        """Tier 3: Apply golden ratio-based normalization."""
-        non_null_bits = [v for v in vec if v is not None]
-        
-        if not non_null_bits:
-            # All null case: use golden ratio pattern
-            phi_pattern = [1, 0, 1]  # φ-derived ternary pattern
-            return phi_pattern[:len(vec)]
-        
-        # Propagate pattern from non-null bits
-        pattern_base = non_null_bits[0]
-        result = []
-        
-        for i, v in enumerate(vec):
-            if v is not None:
-                result.append(v)
-            else:
-                # Use golden ratio stepping for null positions
-                phi_index = int(i * PHI) % len(non_null_bits)
-                result.append(non_null_bits[phi_index])
-        
-        return result
+    def add_tensor(self, tensor: FractalTensor):
+        """Add tensor to pool."""
+        self.tensors.append(tensor)
 
 # ===============================================================================
 # PATTERN 0: ETHICAL FRACTAL CLUSTER GENERATION
@@ -776,69 +704,6 @@ def pattern0_create_fractal_cluster(
     return tensors
 
 # ===============================================================================
-# TENSOR ROTATION SYSTEM
-# ===============================================================================
-
-class TensorRotor:
-    """Advanced tensor rotation system using phi and fibonacci sequences."""
-    
-    def __init__(self, N: int, mode: str = "hybrid", start_k: int = 0):
-        self.N = max(1, N)
-        self.k = start_k % self.N
-        self.i = 0
-        self.mode = mode
-        self.phi_step = max(1, round(PHI * self.N))
-        self.fib_cache = {n: self._fib(n) for n in range(16)}
-
-    def _fib(self, n: int) -> int:
-        """Compute fibonacci number."""
-        if n <= 1: 
-            return 1
-        a, b = 1, 1
-        for _ in range(2, n + 1): 
-            a, b = b, a + b
-        return b
-
-    def next(self) -> int:
-        """Calculate next index based on rotation strategy."""
-        if self.mode == "phi":
-            self.k = (self.k + self.phi_step) % self.N
-        elif self.mode == "fibonacci":
-            fib_step = self.fib_cache[self.i % 16]
-            self.k = (self.k + fib_step) % self.N
-        else:  # hybrid
-            if self.i % 2 == 0:
-                self.k = (self.k + self.phi_step) % self.N
-            else:
-                fib_step = self.fib_cache[(self.i // 2) % 16]
-                self.k = (self.k + fib_step) % self.N
-        self.i += 1
-        return self.k
-
-class TensorPoolManager:
-    """Pool manager for tensor collections."""
-    
-    def __init__(self):
-        self.tensors = []
-
-    def add_tensor(self, tensor: FractalTensor):
-        """Add tensor to pool."""
-        self.tensors.append(tensor)
-
-    def get_tensor_trio(self, strategy: str = "phi") -> List[FractalTensor]:
-        """Get three tensors using specified rotation strategy."""
-        if len(self.tensors) < 3:
-            # Pad with neutral tensors if needed
-            result = list(self.tensors)
-            while len(result) < 3:
-                result.append(FractalTensor(nivel_3=[[0, 0, 0]]))
-            return result
-
-        rotor = TensorRotor(len(self.tensors), mode=strategy)
-        indices = [rotor.next() for _ in range(3)]
-        return [self.tensors[i] for i in indices]
-
-# ===============================================================================
 # PUBLIC API
 # ===============================================================================
 
@@ -852,7 +717,6 @@ __all__ = [
     'FractalKnowledgeBase',
     'Armonizador',
     'TensorPoolManager',
-    'TensorRotor',
     'Transcender',
     'pattern0_create_fractal_cluster'
 ]

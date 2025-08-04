@@ -1,6 +1,9 @@
     # === Patch Pattern 0 stubs after class definitions ===
 # ===================== PATRÓN 0: SEMILLA ONTOLÓGICA CANÓNICA =====================
 import hashlib
+import random
+import itertools
+from typing import List, Union, Optional, Tuple, Dict
 
 PHI = 0.6180339887
 
@@ -645,97 +648,8 @@ class TernaryLogic:
 # NIVEL 2: COMPONENTES BÁSICOS DE PROCESAMIENTO
 # ===============================================================================
 
-class Trigate:
-    """
-    Trigate canónico Aurora. Implementa los tres modos operativos fundamentales
-    con Honestidad Computacional, utilizando Look-Up Tables (LUTs) para optimización.
-    Las LUTs se generan una sola vez a nivel de clase para máxima eficiencia.
-    """
-    _LUT_INFER = {}
-    _LUT_LEARN = {}
-    _LUT_DEDUCE_A = {}
-    _LUT_DEDUCE_B = {}
-
-
-    @classmethod
-    def _initialize_luts(cls):
-        states = [0, 1, TernaryLogic.NULL]
-        # Learn LUT
-        for a in states:
-            for b in states:
-                for r in states:
-                    m = TernaryLogic.NULL
-                    if TernaryLogic.NULL not in (a, b, r):
-                        m = a ^ b if r == 1 else 1 - (a ^ b)
-                    cls._LUT_LEARN[(a, b, r)] = m
-        # Infer LUT
-        for a in states:
-            for b in states:
-                for m in states:
-                    r = TernaryLogic.NULL
-                    if TernaryLogic.NULL not in (a, b, m):
-                        r = a ^ b if m == 1 else 1 - (a ^ b)
-                    cls._LUT_INFER[(a, b, m)] = r
-        # Deduce A LUT
-        for m in states:
-            for r in states:
-                for b in states:
-                    a = TernaryLogic.NULL
-                    if TernaryLogic.NULL not in (b, m, r):
-                        a = b ^ r if m == 1 else 1 - (b ^ r)
-                    cls._LUT_DEDUCE_A[(b, m, r)] = a
-        # Deduce B LUT
-        for m in states:
-            for r in states:
-                for a in states:
-                    b = TernaryLogic.NULL
-                    if TernaryLogic.NULL not in (a, m, r):
-                        b = a ^ r if m == 1 else 1 - (a ^ r)
-                    cls._LUT_DEDUCE_B[(a, m, r)] = b
-
-    def infer(self, A: List[int], B: List[int], M: List[int]) -> List[Optional[int]]:
-        """Modo 1: Inferencia - Calcula R desde A, B, M."""
-        return [self._LUT_INFER.get((a, b, m)) for a, b, m in zip(A, B, M)]
-
-
-
-
-
-    def learn(self, A: List[int], B: List[int], R: List[int]) -> List[Optional[int]]:
-        """Modo 2: Aprendizaje - Descubre M desde A, B, R."""
-        return [self._LUT_LEARN.get((a, b, r)) for a, b, r in zip(A, B, R)]
-
-    def synthesize(self, A: List[int], B: List[int]) -> Tuple[List[Optional[int]], List[Optional[int]]]:
-        """Síntesis Aurora: genera M (lógica) y S (forma) desde A y B."""
-        M = [TernaryLogic.ternary_xor(a, b) for a, b in zip(A, B)]
-        S = [TernaryLogic.ternary_xnor(a, b) for a, b in zip(A, B)]
-        return M, S
-
-    def recursive_synthesis(
-        self,
-        vectors: List[List[int]]
-    ) -> Tuple[List[Optional[int]], List[List[Optional[int]]]]:
-        """
-        Reduce secuencialmente una lista ≥2 de vectores ternarios.
-
-        Devuelve:
-          • resultado_final – vector M después de la última combinación
-          • history – lista de cada resultado intermedio (M-k) para depuración
-        """
-        if len(vectors) < 2:
-            raise ValueError("Se necesitan al menos 2 vectores")
-
-        history: List[List[Optional[int]]] = []
-        current = vectors[0]
-
-        for nxt in vectors[1:]:
-            current, _ = self.synthesize(current, nxt)
-            history.append(current)
-
-        return current, history        
-
 # Inicializar las LUTs una sola vez al cargar el script
-Trigate._initialize_luts()
+# Trigate se inicializa más adelante en el archivo
 
 class Transcender:
     def relate_vectors(self, A: list, B: list, context: dict = None) -> list:
@@ -1185,6 +1099,11 @@ class FractalKnowledgeBase:
     def add_archetype(self, space_id: str, name: str, archetype_tensor: "FractalTensor", Ss: list, **kwargs) -> bool:
         """Delegado: añade un arquetipo fractal al universo correcto."""
         return self._get_space(space_id).add_archetype(archetype_tensor, Ss, name=name, **kwargs)
+    
+    def get_archetype(self, space_id: str, name: str) -> Optional["FractalTensor"]:
+        """Obtiene un arquetipo por space_id y nombre."""
+        return self._get_space(space_id).find_archetype_by_name(name)
+    
     def store_model(self, space_id: str, model_name: str, model_data: dict):
         return self._get_space(space_id).store_model(model_name, model_data)
 
@@ -1955,3 +1874,299 @@ class InverseEvolver:
             create_tensor([B_l3], B_l9, B_l27, ss="B"),
             create_tensor([C_l3], C_l9, C_l27, ss="C")
         ]
+
+
+# ===================== TRIGATE IMPLEMENTATION =====================
+
+# Ternary values
+NULL = None
+TERNARY_VALUES = [0, 1, NULL]
+
+
+class Trigate:
+    """
+    Fundamental Aurora logic module implementing ternary operations.
+    
+    Supports three operational modes:
+    1. Inference: A + B + M -> R (given inputs and control, compute result)
+    2. Learning: A + B + R -> M (given inputs and result, learn control)
+    3. Deduction: M + R + A -> B (given control, result, and one input, deduce other)
+    
+    All operations are O(1) using precomputed lookup tables (LUTs).
+    """
+    
+    # Class-level LUTs (computed once at module load)
+    _LUT_INFER: Dict[Tuple, int] = {}
+    _LUT_LEARN: Dict[Tuple, int] = {}
+    _LUT_DEDUCE_A: Dict[Tuple, int] = {}
+    _LUT_DEDUCE_B: Dict[Tuple, int] = {}
+    _initialized = False
+    
+    def __init__(self):
+        """Initialize Trigate and ensure LUTs are computed."""
+        if not Trigate._initialized:
+            Trigate._initialize_luts()
+    
+    @classmethod
+    def _initialize_luts(cls):
+        """
+        Initialize all lookup tables for O(1) operations.
+        
+        Based on extended XOR logic with NULL propagation:
+        - 0 XOR 0 = 0, 0 XOR 1 = 1, 1 XOR 0 = 1, 1 XOR 1 = 0
+        - Any operation with NULL propagates NULL
+        - Control bit M determines XOR (1) or XNOR (0)
+        """
+        print("Initializing Trigate LUTs...")
+        
+        # Generate all possible combinations for ternary logic
+        for a, b, m, r in itertools.product(TERNARY_VALUES, repeat=4):
+            
+            # INFERENCE LUT: (a, b, m) -> r
+            computed_r = cls._compute_inference(a, b, m)
+            cls._LUT_INFER[(a, b, m)] = computed_r
+            
+            # LEARNING LUT: (a, b, r) -> m
+            # Find control M that produces R given A, B
+            learned_m = cls._compute_learning(a, b, r)
+            cls._LUT_LEARN[(a, b, r)] = learned_m
+            
+            # DEDUCTION LUTS: (m, r, a) -> b and (m, r, b) -> a
+            deduced_b = cls._compute_deduction_b(m, r, a)
+            deduced_a = cls._compute_deduction_a(m, r, b)
+            
+            cls._LUT_DEDUCE_B[(m, r, a)] = deduced_b
+            cls._LUT_DEDUCE_A[(m, r, b)] = deduced_a
+        
+        cls._initialized = True
+        print(f"Trigate LUTs initialized: {len(cls._LUT_INFER)} entries each")
+    
+    @staticmethod
+    def _compute_inference(a: Union[int, None], b: Union[int, None], m: Union[int, None]) -> Union[int, None]:
+        """
+        Compute R given A, B, M using ternary logic.
+        
+        Logic:
+        - If any input is NULL, result is NULL
+        - If M is 1: R = A XOR B
+        - If M is 0: R = A XNOR B (NOT(A XOR B))
+        """
+        if a is NULL or b is NULL or m is NULL:
+            return NULL
+        
+        if m == 1:  # XOR mode
+            return a ^ b
+        else:  # XNOR mode (m == 0)
+            return 1 - (a ^ b)
+    
+    @staticmethod
+    def _compute_learning(a: Union[int, None], b: Union[int, None], r: Union[int, None]) -> Union[int, None]:
+        """
+        Learn control M given A, B, R.
+        
+        Logic:
+        - If any input is NULL, cannot learn -> NULL
+        - If A XOR B == R, then M = 1 (XOR)
+        - If A XOR B != R, then M = 0 (XNOR)
+        """
+        if a is NULL or b is NULL or r is NULL:
+            return NULL
+        
+        xor_result = a ^ b
+        if xor_result == r:
+            return 1  # XOR mode produces correct result
+        else:
+            return 0  # XNOR mode produces correct result
+    
+    @staticmethod
+    def _compute_deduction_a(m: Union[int, None], r: Union[int, None], b: Union[int, None]) -> Union[int, None]:
+        """
+        Deduce A given M, R, B.
+        
+        Logic:
+        - If any input is NULL, cannot deduce -> NULL
+        - If M is 1: A = R XOR B (since R = A XOR B)
+        - If M is 0: A = NOT(R) XOR B (since R = NOT(A XOR B))
+        """
+        if m is NULL or r is NULL or b is NULL:
+            return NULL
+        
+        if m == 1:  # XOR mode: A XOR B = R -> A = R XOR B
+            return r ^ b
+        else:  # XNOR mode: NOT(A XOR B) = R -> A XOR B = NOT(R) -> A = NOT(R) XOR B
+            return (1 - r) ^ b
+    
+    @staticmethod
+    def _compute_deduction_b(m: Union[int, None], r: Union[int, None], a: Union[int, None]) -> Union[int, None]:
+        """
+        Deduce B given M, R, A.
+        
+        Logic: Same as deduce_a but solving for B instead of A.
+        """
+        if m is NULL or r is NULL or a is NULL:
+            return NULL
+        
+        if m == 1:  # XOR mode: A XOR B = R -> B = R XOR A
+            return r ^ a
+        else:  # XNOR mode: NOT(A XOR B) = R -> A XOR B = NOT(R) -> B = NOT(R) XOR A
+            return (1 - r) ^ a
+    
+    def infer(self, A: List[Union[int, None]], B: List[Union[int, None]], M: List[Union[int, None]]) -> List[Union[int, None]]:
+        """
+        Inference mode: Compute R given A, B, M.
+        
+        Args:
+            A: First input vector (3 bits)
+            B: Second input vector (3 bits)
+            M: Control vector (3 bits)
+            
+        Returns:
+            R: Result vector (3 bits)
+        """
+        if not (len(A) == len(B) == len(M) == 3):
+            raise ValueError("All vectors must have exactly 3 elements")
+        
+        return [self._LUT_INFER[(a, b, m)] for a, b, m in zip(A, B, M)]
+    
+    def learn(self, A: List[Union[int, None]], B: List[Union[int, None]], R: List[Union[int, None]]) -> List[Union[int, None]]:
+        """
+        Learning mode: Learn control M given A, B, R.
+        
+        Args:
+            A: First input vector (3 bits)
+            B: Second input vector (3 bits)
+            R: Target result vector (3 bits)
+            
+        Returns:
+            M: Learned control vector (3 bits)
+        """
+        if not (len(A) == len(B) == len(R) == 3):
+            raise ValueError("All vectors must have exactly 3 elements")
+        
+        return [self._LUT_LEARN[(a, b, r)] for a, b, r in zip(A, B, R)]
+    
+    def deduce_a(self, M: List[Union[int, None]], R: List[Union[int, None]], B: List[Union[int, None]]) -> List[Union[int, None]]:
+        """
+        Deduction mode: Deduce A given M, R, B.
+        
+        Args:
+            M: Control vector (3 bits)
+            R: Result vector (3 bits)
+            B: Known input vector (3 bits)
+            
+        Returns:
+            A: Deduced input vector (3 bits)
+        """
+        if not (len(M) == len(R) == len(B) == 3):
+            raise ValueError("All vectors must have exactly 3 elements")
+        
+        return [self._LUT_DEDUCE_A[(m, r, b)] for m, r, b in zip(M, R, B)]
+    
+    def deduce_b(self, M: List[Union[int, None]], R: List[Union[int, None]], A: List[Union[int, None]]) -> List[Union[int, None]]:
+        """
+        Deduction mode: Deduce B given M, R, A.
+        
+        Args:
+            M: Control vector (3 bits)
+            R: Result vector (3 bits)
+            A: Known input vector (3 bits)
+            
+        Returns:
+            B: Deduced input vector (3 bits)
+        """
+        if not (len(M) == len(R) == len(A) == 3):
+            raise ValueError("All vectors must have exactly 3 elements")
+        
+        return [self._LUT_DEDUCE_B[(m, r, a)] for m, r, a in zip(M, R, A)]
+    
+    def validate_triangle_closure(self, A: List[Union[int, None]], B: List[Union[int, None]], 
+                                  M: List[Union[int, None]], R: List[Union[int, None]]) -> bool:
+        """
+        Validate that A, B, M, R form a valid logical triangle.
+        
+        This ensures geometric coherence: the triangle "closes" properly.
+        
+        Args:
+            A, B, M, R: The four vectors forming the logical triangle
+            
+        Returns:
+            True if triangle is valid, False otherwise
+        """
+        # Compute expected R from A, B, M
+        expected_R = self.infer(A, B, M)
+        
+        # Check if computed R matches provided R
+        for expected, actual in zip(expected_R, R):
+            if expected != actual:
+                return False
+        
+        return True
+    
+    def get_truth_table(self, operation: str = "infer") -> str:
+        """
+        Generate human-readable truth table for debugging.
+        
+        Args:
+            operation: "infer", "learn", "deduce_a", or "deduce_b"
+            
+        Returns:
+            Formatted truth table string
+        """
+        if operation == "infer":
+            lut = self._LUT_INFER
+            header = "A | B | M | R"
+        elif operation == "learn":
+            lut = self._LUT_LEARN
+            header = "A | B | R | M"
+        elif operation == "deduce_a":
+            lut = self._LUT_DEDUCE_A
+            header = "M | R | B | A"
+        elif operation == "deduce_b":
+            lut = self._LUT_DEDUCE_B
+            header = "M | R | A | B"
+        else:
+            raise ValueError(f"Unknown operation: {operation}")
+        
+        def format_val(v):
+            return "N" if v is NULL else str(v)
+        
+        lines = [header, "-" * len(header)]
+        
+        for key, value in sorted(lut.items()):
+            key_str = " | ".join(format_val(k) for k in key)
+            val_str = format_val(value)
+            lines.append(f"{key_str} | {val_str}")
+        
+        return "\n".join(lines)
+    
+    def synthesize(self, A: List[int], B: List[int]) -> Tuple[List[Optional[int]], List[Optional[int]]]:
+        """Síntesis Aurora: genera M (lógica) y S (forma) desde A y B."""
+        M = [TernaryLogic.ternary_xor(a, b) for a, b in zip(A, B)]
+        S = [TernaryLogic.ternary_xnor(a, b) for a, b in zip(A, B)]
+        return M, S
+
+    def recursive_synthesis(
+        self,
+        vectors: List[List[int]]
+    ) -> Tuple[List[Optional[int]], List[List[Optional[int]]]]:
+        """
+        Reduce secuencialmente una lista ≥2 de vectores ternarios.
+
+        Devuelve:
+          • resultado_final – vector M después de la última combinación
+          • history – lista de cada resultado intermedio (M-k) para depuración
+        """
+        if len(vectors) < 2:
+            raise ValueError("Se necesitan al menos 2 vectores")
+
+        history: List[List[Optional[int]]] = []
+        current = vectors[0]
+
+        for nxt in vectors[1:]:
+            current, _ = self.synthesize(current, nxt)
+            history.append(current)
+
+        return current, history
+    
+    def __repr__(self) -> str:
+        return f"Trigate(initialized={self._initialized}, lut_size={len(self._LUT_INFER)})"

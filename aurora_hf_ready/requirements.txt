@@ -1,0 +1,12 @@
+# Aurora Trinity-3 - Optional Dependencies
+# Core Aurora works without any dependencies (pure Python)
+# These are only needed for advanced features:
+
+# For Hugging Face integration (optional):
+# torch>=2.0.0
+# transformers>=4.30.0
+# huggingface-hub>=0.16.0
+
+# For development (optional):
+# pytest>=6.0.0
+# black>=22.0.0
