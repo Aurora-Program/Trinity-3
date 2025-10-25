@@ -75,7 +75,7 @@ class SimpleKnowledgeBase:
         
         # Alimentar al Evolver
         if "audits" in data:
-            self.evolver.observe_fractal(data, level_tag=tag)
+            self.evolver.observe_fractal(data, level_name=tag)
         
         # Stats
         self.stats["total_stored"] += 1
