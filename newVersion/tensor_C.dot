@@ -1,0 +1,9 @@
+digraph "CreenciaC" {
+  rankdir=LR; node [shape=circle];
+  FO0[label="FO0=0"]; FO1[label="FO1=0"]; FO2[label="FO2=0"];
+  FN0[label="FN0=0"]; FN1[label="FN1=0"]; FN2[label="FN2=0"];
+  ES0[label="ES0=0"]; ES1[label="ES1=0"]; ES2[label="ES2=0"];
+  FO0 -> FN0 -> ES0;
+  FO1 -> FN1 -> ES1;
+  FO2 -> FN2 -> ES2;
+}
