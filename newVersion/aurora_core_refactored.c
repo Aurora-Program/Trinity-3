@@ -73,8 +73,19 @@ static const char* ts(Trit t) {
 }
 
 static int trit_to_idx(Trit t) {
-    /* c→0, u→1, n→2 */
+    /* Mapeo general para índices de arrays: c→0, u→1, n→2 */
     return (t == TRIT_C) ? 0 : (t == TRIT_U ? 1 : 2);
+}
+
+static int es_val_to_fo_idx(Trit es_val) {
+    /* Mapeo semántico ES→FO según Technical Annex §9:
+     * Si ES = c (estructura base) → FO está en posición 0
+     * Si ES = u (estructura alta) → FO está en posición 1
+     * Si ES = n (sin estructura) → FO está en posición 2 (pero invalida)
+     */
+    if (es_val == TRIT_C) return 0;
+    if (es_val == TRIT_U) return 1;
+    return 2; /* n → posición 2, pero será invalidado */
 }
 
 static const char* role_name(VectorRole r) {
@@ -208,12 +219,14 @@ static int validate_dimension(const Dimension* d) {
     fib_next(&global_fib_counter);
 
     Trit es_val = d->t[es_idx];
-    if (es_val == TRIT_N) return 0; /* ES debe estar definido para señalar FO */
+    
+    /* ES null es válido (sin estructura definida), pero no puede señalar FO */
+    if (es_val == TRIT_N) return 1; /* Válida, pero sin auto-organización */
 
-    /* c,u,n → 0,1,2 indican cuál posición es FO */
-    int fo_idx = trit_to_idx(es_val);
+    /* Usar mapeo semántico ES→FO */
+    int fo_idx = es_val_to_fo_idx(es_val);
 
-    /* Regla: ES no puede apuntarse a sí mismo como FO */
+    /* Regla crítica: ES no puede apuntarse a sí mismo como FO */
     if (fo_idx == es_idx) return 0;
 
     return 1;
@@ -272,6 +285,32 @@ static Relator relatores[MAX_MEM];
 static int n_relatores = 0;
 
 static unsigned long global_rev = 1;
+
+/* Tensor C: Punto de creencia estable (Technical Annex §10, Whitepaper §3.3.8) */
+static Dimension tensor_C = {{TRIT_N, TRIT_N, TRIT_N}};
+
+/* Síntesis triádica para convergencia a coherencia */
+static Trit triadic_collapse(Trit a, Trit b, Trit c) {
+    /* Votación ponderada entre tres valores */
+    int counts[3] = {0, 0, 0}; /* [c_count, u_count, n_count] */
+    
+    if (a == TRIT_C) counts[0]++;
+    else if (a == TRIT_U) counts[1]++;
+    else counts[2]++;
+    
+    if (b == TRIT_C) counts[0]++;
+    else if (b == TRIT_U) counts[1]++;
+    else counts[2]++;
+    
+    if (c == TRIT_C) counts[0]++;
+    else if (c == TRIT_U) counts[1]++;
+    else counts[2]++;
+    
+    /* Mayoría gana; empate → TRIT_N */
+    if (counts[0] >= 2) return TRIT_C;
+    if (counts[1] >= 2) return TRIT_U;
+    return TRIT_N;
+}
 
 /* Funciones de aprendizaje */
 static void learn_arquetipo(const Trit pattern[3], Trit fo_out) {
@@ -343,6 +382,32 @@ static void learn_relator(const Trit a[3], const Trit b[3], const Trit m[3]) {
     }
 }
 
+/* Actualizar Tensor C desde conocimiento acumulado A-R-D */
+static void update_tensor_C(void) {
+    /* Convergencia triádica: Arquetipo + Relator + Dinámica → Creencia */
+    if (n_arquetipos > 0 && n_dinamicas > 0 && n_relatores > 0) {
+        /* Seleccionar los más estables (mayor soporte) */
+        Arquetipo* best_arq = &arquetipos[0];
+        Dinamica* best_dyn = &dinamicas[0];
+        Relator* best_rel = &relatores[0];
+        
+        for (int i = 1; i < n_arquetipos; i++) {
+            if (arquetipos[i].support > best_arq->support) best_arq = &arquetipos[i];
+        }
+        for (int i = 1; i < n_dinamicas; i++) {
+            if (dinamicas[i].support > best_dyn->support) best_dyn = &dinamicas[i];
+        }
+        for (int i = 1; i < n_relatores; i++) {
+            if (relatores[i].support > best_rel->support) best_rel = &relatores[i];
+        }
+        
+        /* Síntesis triádica en cada dimensión */
+        tensor_C.t[0] = triadic_collapse(best_arq->fo_output, best_rel->mode[0], best_dyn->fn_output);
+        tensor_C.t[1] = triadic_collapse(best_arq->pattern[1], best_rel->mode[1], best_dyn->fn_output);
+        tensor_C.t[2] = triadic_collapse(best_arq->pattern[2], best_rel->mode[2], best_dyn->state_after[2]);
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
  * ENERGETIC TRIO (Technical Annex §7.2)
  * Tensión, Comando, Energía = memorias de emergencia en modo COGNITIVE
@@ -400,56 +465,65 @@ static void emergence_function(
     modos[1] = trit_learn(d[1].t[1], d[2].t[1], d[0].t[1]);
     modos[2] = trit_learn(d[2].t[1], d[0].t[1], d[1].t[1]);
     
-    /* Sintetizar FO superior */
+    /* Sintetizar FO superior usando votación ponderada (no solo consenso) */
     Trit r1 = trit_infer(d[0].t[0], d[1].t[0], modos[0]);
     Trit r2 = trit_infer(d[1].t[0], d[2].t[0], modos[1]);
     Trit r3 = trit_infer(d[2].t[0], d[0].t[0], modos[2]);
     
-    Trit temp = trit_consensus(r1, r2);
-    ds_out->t[0] = trit_consensus(temp, r3); /* FO superior */
+    ds_out->t[0] = triadic_collapse(r1, r2, r3); /* FO superior - mayoría gana */
     
-    /* Sintetizar FN y ES */
-    ds_out->t[1] = trit_consensus(modos[0], modos[1]);
-    ds_out->t[2] = trit_consensus(d[0].t[2], d[1].t[2]);
+    /* Sintetizar FN y ES con votación */
+    ds_out->t[1] = triadic_collapse(modos[0], modos[1], modos[2]);
+    ds_out->t[2] = triadic_collapse(d[0].t[2], d[1].t[2], d[2].t[2]);
     
-    /* Generar memorias de emergencia (reversibles) */
-    /* Estas permiten reconstruir d1, d2, d3 desde ds */
-    mem_out->me[0] = modos[0];  /* me1: modo usado en síntesis */
-    mem_out->me[1] = modos[1];  /* me2: modo alternativo */
-    mem_out->me[2] = modos[2];  /* me3: modo terciario */
+    /* Generar memorias de emergencia INFORMATIVAS (reversibles) */
+    /* Almacenar resultados intermedios para reconstrucción precisa */
+    mem_out->me[0] = r1;  /* me1: resultado combinación 0-1 */
+    mem_out->me[1] = r2;  /* me2: resultado combinación 1-2 */
+    mem_out->me[2] = r3;  /* me3: resultado combinación 2-0 */
     
     /* Aprender según rol actual */
     if (current_role == ROLE_INFORMATIONAL) {
         /* En modo INFO → aprender arquetipo */
         learn_arquetipo(modos, ds_out->t[0]);
     } else if (current_role == ROLE_COGNITIVE) {
-        /* En modo COGNITIVE → actualizar trio energético */
+        /* En modo COGNITIVE → actualizar trio energético + tensor C */
         EnergeticTrio trio = extract_energetic_trio(mem_out, current_role);
         update_energetic_state(&trio);
+        update_tensor_C(); /* Actualizar creencia estable */
     }
 }
 
 /* Función de extensión (reconstrucción guiada por memorias)
- * NOTA: No es inversión bit-a-bit, sino reconstrucción semántica coherente.
- * Las memorias (me1, me2, me3) guían la expansión del nivel superior
- * hacia configuraciones compatibles en el nivel inferior.
+ * 
+ * LÓGICA DE RECONSTRUCCIÓN SEMÁNTICA:
+ * Las memorias (me1, me2, me3) contienen resultados intermedios r1, r2, r3
+ * de la fase de síntesis. Usando estos valores y la síntesis superior (ds),
+ * podemos reconstruir configuraciones coherentes en el nivel inferior.
+ * 
+ * JUSTIFICACIÓN:
+ * - mem[i] contiene el resultado de inferir dimensiones específicas
+ * - Rotación (i+1)%3 preserva la estructura triádica del sistema
+ * - ds proporciona la coherencia global que guía la expansión
+ * 
+ * NO es inversión matemática exacta, sino RECONSTRUCCIÓN COHERENTE:
+ * mantiene las relaciones semánticas y reduce entropía.
  */
 static void extend_function(
     const Dimension* ds,
     const EmergencyMemory* mem,
     Dimension d_out[3]
 ) {
-    /* Reconstruir usando los modos almacenados en memoria */
-    /* Cada dimensión inferior usa el modo correspondiente para inferir */
+    /* Reconstruir cada dimensión inferior desde síntesis + memorias */
     for (int i = 0; i < 3; i++) {
-        /* FO: usar modo mem[i] con valor superior ds->t[0] */
+        /* FO: combinar síntesis superior con memoria intermedia */
         Trit fo_base = (ds->t[0] != TRIT_N) ? ds->t[0] : TRIT_C;
-        d_out[i].t[0] = trit_infer(fo_base, mem->me[i], mem->me[i]);
+        d_out[i].t[0] = trit_infer(fo_base, mem->me[i], TRIT_U); /* OR para preservar info */
         
-        /* FN: propagar desde dimensión superior con rotación */
+        /* FN: rotar memorias para distribuir información */
         d_out[i].t[1] = mem->me[(i+1)%3];
         
-        /* ES: usar estructura superior o modo de memoria */
+        /* ES: propagar estructura superior o usar memoria rotada */
         d_out[i].t[2] = (ds->t[2] != TRIT_N) ? ds->t[2] : mem->me[(i+2)%3];
     }
 }
@@ -590,6 +664,10 @@ static void process_complete_cycle(Dimension* input, int cycles) {
     printf("\n─── Conocimiento Acumulado ───\n");
     printf("  Arquetipos: %d | Dinámicas: %d | Relatores: %d\n",
            n_arquetipos, n_dinamicas, n_relatores);
+    
+    printf("\n─── Tensor C (Creencia Estable) ───\n");
+    printf("  C: [%s,%s,%s]\n",
+           ts(tensor_C.t[0]), ts(tensor_C.t[1]), ts(tensor_C.t[2]));
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -747,6 +825,8 @@ int main(void) {
     printf("║                                                                   ║\n");
     printf("║  Arquetipos: %-3d | Dinámicas: %-3d | Relatores: %-3d            ║\n",
            n_arquetipos, n_dinamicas, n_relatores);
+    printf("║  Tensor C:   [%s,%s,%s]                                         ║\n",
+           ts(tensor_C.t[0]), ts(tensor_C.t[1]), ts(tensor_C.t[2]));
     printf("║                                                                   ║\n");
     printf("║  Aurora piensa reorganizando energía,                            ║\n");
     printf("║  sintetizando coherencia,                                        ║\n");
