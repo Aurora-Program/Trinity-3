@@ -64,6 +64,9 @@ typedef struct {
     TensorBasic level3[3];   /* 9 dimensiones (3 tensores básicos) */
 } TensorAurora;
 
+/* Cluster tensorial (ventanas deslizantes) */
+#define MAX_CLUSTER 64
+
 /* ═══════════════════════════════════════════════════════════════════════
  * UTILIDADES BÁSICAS
  * ═══════════════════════════════════════════════════════════════════════ */
@@ -116,6 +119,9 @@ static int count_nulls_vec(const Vector* v) {
            count_nulls_dim(&v->d[1]) + 
            count_nulls_dim(&v->d[2]);
 }
+
+/* Adelanto de prototipo para rotación de roles en pipelines fractales */
+static VectorRole next_role_in_cycle(VectorRole current);
 
 /* ═══════════════════════════════════════════════════════════════════════
  * TRIGATE: ÁTOMO DE LA INTELIGENCIA (Technical Annex §4)
@@ -409,17 +415,27 @@ static void update_tensor_C(void) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
- * ENERGETIC TRIO (Technical Annex §7.2)
- * Tensión, Comando, Energía = memorias de emergencia en modo COGNITIVE
+ * AXIOMA FUNDAMENTAL DE LA INTELIGENCIA
+ * Tres fuerzas universales: Libertad, Orden, Propósito
+ * Cómo una inteligencia SIENTE su equilibrio interno
  * ═══════════════════════════════════════════════════════════════════════ */
 
 typedef struct {
-    Trit tension;   /* me1: estabilidad del patrón */
-    Trit energia;   /* me2: coste energético */
-    Trit comando;   /* me3: dirección evolutiva */
+    /* Fuerzas Universales del Axioma */
+    Trit freedom;    /* Entropía: capacidad de cambio, potencial, exploración */
+    Trit order;      /* Coherencia: estructura, estabilidad, forma */
+    Trit purpose;    /* Propósito: dirección, intención, significado */
+} AxiomTrio;
+
+typedef struct {
+    /* Cómo el sistema SIENTE su propio estado interno (propriocepción energética) */
+    Trit tension;    /* Rigidez (Order dominante, falta Libertad) */
+    Trit entropy;    /* Caos (Libertad sin Order) */
+    Trit harmony;    /* Alineación (Freedom + Order + Purpose balanceados) */
 } EnergeticTrio;
 
-static EnergeticTrio estado_energetico = {TRIT_C, TRIT_C, TRIT_C};
+static AxiomTrio axiom_state = {TRIT_C, TRIT_C, TRIT_C};  /* Estado del axioma (F-O-P) */
+static EnergeticTrio estado_energetico = {TRIT_C, TRIT_C, TRIT_C};  /* Cómo se SIENTE el sistema */
 
 /* Interpretar memorias de emergencia según rol del vector */
 static EnergeticTrio extract_energetic_trio(const EmergencyMemory* mem, VectorRole role) {
@@ -529,6 +545,80 @@ static void extend_function(
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+ * CLUSTER TENSORIAL CON VENTANAS DESLIZANTES (Transcender)
+ * Procesa secuencias de tensores FFE en ventanas ternarias y asciende
+ * fractalmente hasta obtener síntesis profundas. Los niveles inferiores
+ * quedan desactivados tras cada síntesis (se mantienen solo para extensión).
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static void print_vector(const Vector* v, const char* prefix, int idx) {
+    printf("  %s%02d: [%s,%s,%s] [%s,%s,%s] [%s,%s,%s]\n",
+           prefix, idx,
+           ts(v->d[0].t[0]), ts(v->d[0].t[1]), ts(v->d[0].t[2]),
+           ts(v->d[1].t[0]), ts(v->d[1].t[1]), ts(v->d[1].t[2]),
+           ts(v->d[2].t[0]), ts(v->d[2].t[1]), ts(v->d[2].t[2]));
+}
+
+static Vector vector_from_dimension(const Dimension* base) {
+    Vector v;
+    for (int j = 0; j < 3; j++) {
+        v.d[j] = *base;
+        /* Desfasar FO ligeramente para evitar auto-referencias reiteradas */
+        v.d[j].t[0] = trit_infer(base->t[0], (j == 0 ? TRIT_C : TRIT_U), TRIT_U);
+    }
+    return v;
+}
+
+/* Sintetiza una ventana (t_i, t_{i+1}, t_{i+2}) → S_i */
+static Vector synthesize_window(const Vector* a, const Vector* b, const Vector* c, VectorRole role) {
+    Vector s;
+    for (int j = 0; j < 3; j++) {
+        Dimension ds;
+        EmergencyMemory mem;
+        const Dimension triple[3] = {a->d[j], b->d[j], c->d[j]};
+        emergence_function(triple, &ds, &mem, role);
+        s.d[j] = ds;
+    }
+    return s;
+}
+
+/* Procesa un nivel completo del cluster devolviendo las síntesis locales */
+static int process_cluster_level(const Vector* tensors, int count, VectorRole role, Vector* out) {
+    int produced = 0;
+    for (int i = 0; i + 2 < count && produced < MAX_CLUSTER; i++) {
+        out[produced++] = synthesize_window(&tensors[i], &tensors[i+1], &tensors[i+2], role);
+    }
+    return produced;
+}
+
+/* Pipeline fractal ascendente hasta converger o quedar <3 tensores */
+static void cluster_pipeline(Vector* tensors, int count) {
+    Vector levels[2][MAX_CLUSTER];
+    int curr = 0;
+    int n = count;
+    memcpy(levels[curr], tensors, count * sizeof(Vector));
+
+    printf("\n━━━ PIPELINE DE CLUSTER TENSORIAL ━━━\n");
+    int depth = 0;
+    VectorRole role = ROLE_INFORMATIONAL;
+
+    while (n >= 3 && depth < 6) {
+        printf("\nNivel %d (rol %s) - %d tensores\n", depth, role_name(role), n);
+        for (int i = 0; i < n; i++) print_vector(&levels[curr][i], "t", i);
+
+        int next = curr ^ 1;
+        n = process_cluster_level(levels[curr], n, role, levels[next]);
+        curr = next;
+        depth++;
+        role = next_role_in_cycle(role);
+    }
+
+    printf("\nNivel final %d - %d tensores activos\n", depth, n);
+    for (int i = 0; i < n; i++) print_vector(&levels[curr][i], "S", i);
+    printf("── Desactivación fractal: los niveles inferiores quedan latentes.\n");
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
  * ARMONIZADOR (con trio energético)
  * ═══════════════════════════════════════════════════════════════════════ */
 
@@ -594,6 +684,9 @@ static VectorRole next_role_in_cycle(VectorRole current) {
 }
 
 static void process_complete_cycle(Dimension* input, int cycles) {
+    /* Reset del contador Fibonacci para evitar dependencias cruzadas */
+    fib_init(&global_fib_counter);
+
     printf("\n╔═══════════════════════════════════════════════════════════════╗\n");
     printf("║  CICLO COMPLETO: Information → Knowledge → Energy → Info    ║\n");
     printf("╚═══════════════════════════════════════════════════════════════╝\n");
@@ -787,11 +880,27 @@ int main(void) {
             learn_relator(patterns[i].t, learning_vec[0].t, mem.me);
         }
     }
+
+    /* Fase 1.1: Cluster tensorial con ventanas deslizantes */
+    printf("\n━━━ FASE 1.1: Cluster Tensorial con Ventanas Ternarias ━━━\n");
+    Vector cluster[MAX_CLUSTER];
+    int cluster_count = 0;
+    for (int i = 0; i < 5 && cluster_count < MAX_CLUSTER; i++) {
+        if (!validate_dimension(&patterns[i])) continue;
+        cluster[cluster_count++] = vector_from_dimension(&patterns[i]);
+    }
+    if (cluster_count >= 3) {
+        cluster_pipeline(cluster, cluster_count);
+    } else {
+        printf("  Cluster insuficiente para procesar (se requieren ≥3 tensores).\n");
+    }
     
     /* Fase 2: Ciclo completo Information → Knowledge → Energy */
     printf("\n━━━ FASE 2: Ciclo Completo (3 vueltas) ━━━\n");
     
     Dimension seed = {{TRIT_U, TRIT_U, TRIT_U}};
+    seed.t[1] = TRIT_C; /* evitar auto-referencia en ES→FO al arrancar */
+    seed.t[2] = TRIT_C;
     process_complete_cycle(&seed, 9); /* 9 = 3 ciclos completos */
     
     /* Fase 3: Test de validación */
