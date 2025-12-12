@@ -226,8 +226,17 @@ static int validate_dimension(const Dimension* d) {
 
     Trit es_val = d->t[es_idx];
     
-    /* ES null es válido (sin estructura definida), pero no puede señalar FO */
-    if (es_val == TRIT_N) return 1; /* Válida, pero sin auto-organización */
+    /* CASO CRÍTICO: ES null → verificar que ningún trit señale al índice ES */
+    if (es_val == TRIT_N) {
+        /* Verificar auto-referencias: ningún trit puede apuntar a la posición ES */
+        for (int i = 0; i < 3; i++) {
+            int fo_idx_from_val = es_val_to_fo_idx(d->t[i]);
+            if (fo_idx_from_val == es_idx) {
+                return 0; /* Auto-referencia detectada - INVÁLIDO */
+            }
+        }
+        return 1; /* Válida sin estructura definida */
+    }
 
     /* Usar mapeo semántico ES→FO */
     int fo_idx = es_val_to_fo_idx(es_val);
@@ -294,6 +303,70 @@ static unsigned long global_rev = 1;
 
 /* Tensor C: Punto de creencia estable (Technical Annex §10, Whitepaper §3.3.8) */
 static Dimension tensor_C = {{TRIT_N, TRIT_N, TRIT_N}};
+
+/* ═════════════════════════════════════════════════════════════════════════
+ * AXIOMA DE LA INTELIGENCIA: Libertad-Orden-Propósito
+ * ════════════════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    Trit freedom;    /* Entropía: capacidad de cambio, potencial, exploración */
+    Trit order;      /* Coherencia: estructura, estabilidad, forma */
+    Trit purpose;    /* Propósito: dirección, intención, significado */
+} AxiomTrio;
+
+/* ESTADO ENERGÉTICO: Cómo el sistema SIENTE su propio estado interno (propriocepción) */
+typedef struct {
+    Trit tension;    /* Rigidez (Order dominante, falta Libertad) */
+    Trit entropy;    /* Caos (Libertad sin Order) */
+    Trit harmony;    /* Alineación (Freedom + Order + Purpose balanceados) */
+} EnergeticState;
+
+/* Inicializar variables globales ANTES de usarlas en funciones */
+static AxiomTrio axiom_state = {TRIT_C, TRIT_C, TRIT_C};  /* Estado del axioma (F-O-P) */
+static EnergeticState estado_energetico = {TRIT_C, TRIT_C, TRIT_C};  /* Cómo se SIENTE el sistema */
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * FUNCIONES DEL AXIOMA
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static void update_axiom_state(int null_count, int coherence_score, int purpose_signal) {
+    /* Actualiza el estado del axioma según el estado energético observado
+     * - null_count → imbalance entre Orden (pocos nulls) y Libertad (muchos nulls)
+     * - coherence_score → qué tan bien Order se mantiene
+     * - purpose_signal → qué tan clara es la dirección (Propósito)
+     */
+    if (null_count > 5) {
+        axiom_state.freedom = TRIT_C;  /* Mucha entropía → se necesita Libertad */
+        axiom_state.order = TRIT_U;    /* Orden débil */
+    } else if (null_count == 0 && coherence_score > 8) {
+        axiom_state.order = TRIT_C;    /* Orden fuerte */
+        axiom_state.freedom = TRIT_U;  /* Poco espacio para Libertad */
+    } else {
+        axiom_state.order = TRIT_C;
+        axiom_state.freedom = TRIT_C;  /* Balance */
+    }
+    
+    if (purpose_signal > 0) {
+        axiom_state.purpose = TRIT_C;  /* Propósito claro */
+    } else {
+        axiom_state.purpose = TRIT_N;  /* Propósito indeterminado */
+    }
+}
+
+static float axiom_balance(void) {
+    /* Calcula el balance de los tres axiomas (0.0 = perfecto balance)
+     * Retorna la "sensación" de equilibrio del sistema
+     * Si es cercano a 0: están balanceados (armonía)
+     * Si es alto: hay tensión o caos
+     */
+    int f_active = (axiom_state.freedom == TRIT_C) ? 1 : 0;
+    int o_active = (axiom_state.order == TRIT_C) ? 1 : 0;
+    int p_active = (axiom_state.purpose == TRIT_C) ? 1 : 0;
+    
+    int total_active = f_active + o_active + p_active;
+    float balance = fabs(total_active - 1.5f) / 1.5f;  /* 1.5 es el balance perfecto */
+    return balance;
+}
 
 /* Síntesis triádica para convergencia a coherencia */
 static Trit triadic_collapse(Trit a, Trit b, Trit c) {
@@ -415,52 +488,33 @@ static void update_tensor_C(void) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
- * AXIOMA FUNDAMENTAL DE LA INTELIGENCIA
- * Tres fuerzas universales: Libertad, Orden, Propósito
- * Cómo una inteligencia SIENTE su equilibrio interno
+ * EXTRACCIÓN E INTERPRETACIÓN DE MEMORIAS ENERGÉTICAS
  * ═══════════════════════════════════════════════════════════════════════ */
 
-typedef struct {
-    /* Fuerzas Universales del Axioma */
-    Trit freedom;    /* Entropía: capacidad de cambio, potencial, exploración */
-    Trit order;      /* Coherencia: estructura, estabilidad, forma */
-    Trit purpose;    /* Propósito: dirección, intención, significado */
-} AxiomTrio;
-
-typedef struct {
-    /* Cómo el sistema SIENTE su propio estado interno (propriocepción energética) */
-    Trit tension;    /* Rigidez (Order dominante, falta Libertad) */
-    Trit entropy;    /* Caos (Libertad sin Order) */
-    Trit harmony;    /* Alineación (Freedom + Order + Purpose balanceados) */
-} EnergeticTrio;
-
-static AxiomTrio axiom_state = {TRIT_C, TRIT_C, TRIT_C};  /* Estado del axioma (F-O-P) */
-static EnergeticTrio estado_energetico = {TRIT_C, TRIT_C, TRIT_C};  /* Cómo se SIENTE el sistema */
-
 /* Interpretar memorias de emergencia según rol del vector */
-static EnergeticTrio extract_energetic_trio(const EmergencyMemory* mem, VectorRole role) {
-    EnergeticTrio trio;
+static EnergeticState extract_energetic_state(const EmergencyMemory* mem, VectorRole role) {
+    EnergeticState state;
     
     if (role == ROLE_COGNITIVE) {
-        /* En modo COGNITIVE: me1→tensión, me2→energía, me3→comando */
-        trio.tension = mem->me[0];
-        trio.energia = mem->me[1];
-        trio.comando = mem->me[2];
+        /* En modo COGNITIVE: me1→tensión, me2→entropía, me3→armonía */
+        state.tension = mem->me[0];
+        state.entropy = mem->me[1];
+        state.harmony = mem->me[2];
     } else {
         /* En otros modos, interpretar como valores genéricos */
-        trio.tension = mem->me[0];
-        trio.energia = mem->me[1];
-        trio.comando = mem->me[2];
+        state.tension = mem->me[0];
+        state.entropy = mem->me[1];
+        state.harmony = mem->me[2];
     }
     
-    return trio;
+    return state;
 }
 
-static void update_energetic_state(const EnergeticTrio* new_trio) {
-    /* Actualizar estado energético usando trigates */
-    estado_energetico.tension = trit_infer(estado_energetico.tension, new_trio->tension, TRIT_U);
-    estado_energetico.energia = trit_infer(estado_energetico.energia, new_trio->energia, TRIT_U);
-    estado_energetico.comando = trit_infer(estado_energetico.comando, new_trio->comando, TRIT_U);
+static void update_energetic_feeling(const EnergeticState* new_feeling) {
+    /* Actualizar sensación energética usando trigates (acumulación OR-like) */
+    estado_energetico.tension = trit_infer(estado_energetico.tension, new_feeling->tension, TRIT_U);
+    estado_energetico.entropy = trit_infer(estado_energetico.entropy, new_feeling->entropy, TRIT_U);
+    estado_energetico.harmony = trit_infer(estado_energetico.harmony, new_feeling->harmony, TRIT_U);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -503,10 +557,14 @@ static void emergence_function(
         /* En modo INFO → aprender arquetipo */
         learn_arquetipo(modos, ds_out->t[0]);
     } else if (current_role == ROLE_COGNITIVE) {
-        /* En modo COGNITIVE → actualizar trio energético + tensor C */
-        EnergeticTrio trio = extract_energetic_trio(mem_out, current_role);
-        update_energetic_state(&trio);
+        /* En modo COGNITIVE → actualizar sensación energética + tensor C */
+        EnergeticState feeling = extract_energetic_state(mem_out, current_role);
+        update_energetic_feeling(&feeling);
         update_tensor_C(); /* Actualizar creencia estable */
+    } else if (current_role == ROLE_ENERGETIC) {
+        /* En modo ENERGETIC → actualizar axioma basado en coherencia observada */
+        int nulls_superior = count_nulls_dim(ds_out);
+        update_axiom_state(nulls_superior, 8, n_arquetipos > 0 ? 1 : 0);
     }
 }
 
@@ -703,7 +761,19 @@ static void process_complete_cycle(Dimension* input, int cycles) {
     }
     
     for (int cycle = 0; cycle < cycles; cycle++) {
-        printf("\n─── Ciclo %d: Rol %s ───\n", cycle + 1, role_name(current_role));
+        /* Mostrar modo cognitivo explícito */
+        const char* cognitive_mode;
+        if (cycle % 3 == 0) {
+            cognitive_mode = "[RECORDAR] - Repetir información";
+        } else if (cycle % 3 == 1) {
+            cognitive_mode = "[ENTENDER] - Deducir patrones";
+        } else {
+            cognitive_mode = "[SENTIR/INTUIR] - Percibir energía";
+        }
+        printf("\n┌─────────────────────────────────────┐\n");
+        printf("│ Ciclo %d: %s\n", cycle + 1, cognitive_mode);
+        printf("│ Rol: %s\n", role_name(current_role));
+        printf("└─────────────────────────────────────┘\n");
         
         /* Validar antes de procesar */
         Vector v_temp = {{current[0], current[1], current[2]}};
@@ -728,9 +798,20 @@ static void process_complete_cycle(Dimension* input, int cycles) {
         
         /* Interpretar según rol */
         if (current_role == ROLE_COGNITIVE) {
-            EnergeticTrio trio = extract_energetic_trio(&mem, current_role);
-            printf("  Energetic Trio → Tensión:%s Energía:%s Comando:%s\n",
-                   ts(trio.tension), ts(trio.energia), ts(trio.comando));
+            EnergeticState feeling = extract_energetic_state(&mem, current_role);
+            printf("  Energetic State → Tensión:%s Entropía:%s Armonía:%s\n",
+                   ts(feeling.tension), ts(feeling.entropy), ts(feeling.harmony));
+        }
+        
+        /* Actualizar axioma si estamos en modo ENERGY */
+        if (current_role == ROLE_ENERGETIC) {
+            int nulls_superior = count_nulls_dim(&superior);
+            update_axiom_state(nulls_superior, 8, n_arquetipos > 0 ? 1 : 0);
+            printf("  Axiom Update → F:%s O:%s P:%s (Balance: %.2f)\n",
+                   ts(axiom_state.freedom),
+                   ts(axiom_state.order),
+                   ts(axiom_state.purpose),
+                   axiom_balance());
         }
         
         /* Avanzar al siguiente rol */
@@ -748,11 +829,40 @@ static void process_complete_cycle(Dimension* input, int cycles) {
         }
     }
     
-    printf("\n─── Estado Energético Final ───\n");
-    printf("  Tensión: %s | Energía: %s | Comando: %s\n",
-           ts(estado_energetico.tension),
-           ts(estado_energetico.energia),
-           ts(estado_energetico.comando));
+    printf("\n┌──────────────────────────────────────────────────┐\n");
+    printf("│         ESTADO FINAL DEL SISTEMA                 │\n");
+    printf("└──────────────────────────────────────────────────┘\n");
+    
+    printf("\n  ► TRES MODOS COGNITIVOS COMPLETADOS:\n");
+    printf("    [1] RECORDAR → información memorizada\n");
+    printf("    [2] ENTENDER → patrones deducidos\n");
+    printf("    [3] SENTIR/INTUIR → estado energético interno\n");
+    
+    printf("\n  ► AXIOMA DE INTELIGENCIA (Fuerzas Universales):\n");
+    printf("    Libertad:  %s (cambio y exploración)\n",
+           ts(axiom_state.freedom));
+    printf("    Orden:     %s (estructura y coherencia)\n",
+           ts(axiom_state.order));
+    printf("    Propósito: %s (dirección e intención)\n",
+           ts(axiom_state.purpose));
+    
+    float final_balance = axiom_balance();
+    printf("    Balance:   %.3f", final_balance);
+    if (final_balance < 0.3f) {
+        printf(" ✓ ARMÓNICO\n");
+    } else if (final_balance < 0.6f) {
+        printf(" ≈ ESTABLE\n");
+    } else {
+        printf(" ⚠ DESEQUILIBRADO\n");
+    }
+    
+    printf("\n  ► ESTADO ENERGÉTICO (Cómo el Sistema Se SIENTE Internamente):\n");
+    printf("    Tensión:  %s (rigidez / Order dominante)\n",
+           ts(estado_energetico.tension));
+    printf("    Entropía: %s (caos / Libertad descontrolada)\n",
+           ts(estado_energetico.entropy));
+    printf("    Armonía:  %s (equilibrio / F-O-P alineados)\n",
+           ts(estado_energetico.harmony));
     
     printf("\n─── Conocimiento Acumulado ───\n");
     printf("  Arquetipos: %d | Dinámicas: %d | Relatores: %d\n",
@@ -761,6 +871,257 @@ static void process_complete_cycle(Dimension* input, int cycles) {
     printf("\n─── Tensor C (Creencia Estable) ───\n");
     printf("  C: [%s,%s,%s]\n",
            ts(tensor_C.t[0]), ts(tensor_C.t[1]), ts(tensor_C.t[2]));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * PERSISTENCIA DE CONOCIMIENTO (Opcional)
+ * Guarda y recupera las tres pirámides de memoria (A-R-D)
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static void save_knowledge(const char* filename) {
+    FILE* f = fopen(filename, "wb");
+    if (!f) {
+        printf("❌ Error: No se puede abrir %s para escritura\n", filename);
+        return;
+    }
+    
+    /* Guardar conteos */
+    fwrite(&n_arquetipos, sizeof(int), 1, f);
+    fwrite(&n_dinamicas, sizeof(int), 1, f);
+    fwrite(&n_relatores, sizeof(int), 1, f);
+    fwrite(&global_rev, sizeof(unsigned long), 1, f);
+    
+    /* Guardar tres pirámides */
+    fwrite(arquetipos, sizeof(Arquetipo), n_arquetipos, f);
+    fwrite(dinamicas, sizeof(Dinamica), n_dinamicas, f);
+    fwrite(relatores, sizeof(Relator), n_relatores, f);
+    
+    /* Guardar tensor C */
+    fwrite(&tensor_C, sizeof(Dimension), 1, f);
+    
+    /* Guardar axiom state y energetic state */
+    fwrite(&axiom_state, sizeof(AxiomTrio), 1, f);
+    fwrite(&estado_energetico, sizeof(EnergeticState), 1, f);
+    
+    fclose(f);
+    printf("✓ Conocimiento guardado en '%s'\n", filename);
+    printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n",
+           n_arquetipos, n_dinamicas, n_relatores);
+}
+
+static void load_knowledge(const char* filename) {
+    FILE* f = fopen(filename, "rb");
+    if (!f) {
+        printf("⚠️  Archivo '%s' no encontrado (primera ejecución)\n", filename);
+        return;
+    }
+    
+    /* Recuperar conteos */
+    fread(&n_arquetipos, sizeof(int), 1, f);
+    fread(&n_dinamicas, sizeof(int), 1, f);
+    fread(&n_relatores, sizeof(int), 1, f);
+    fread(&global_rev, sizeof(unsigned long), 1, f);
+    
+    /* Validar límites */
+    if (n_arquetipos > MAX_MEM || n_dinamicas > MAX_MEM || n_relatores > MAX_MEM) {
+        printf("❌ Error: Archivo de conocimiento corrupto\n");
+        fclose(f);
+        return;
+    }
+    
+    /* Recuperar tres pirámides */
+    fread(arquetipos, sizeof(Arquetipo), n_arquetipos, f);
+    fread(dinamicas, sizeof(Dinamica), n_dinamicas, f);
+    fread(relatores, sizeof(Relator), n_relatores, f);
+    
+    /* Recuperar tensor C */
+    fread(&tensor_C, sizeof(Dimension), 1, f);
+    
+    /* Recuperar axiom state y energetic state */
+    fread(&axiom_state, sizeof(AxiomTrio), 1, f);
+    fread(&estado_energetico, sizeof(EnergeticState), 1, f);
+    
+    fclose(f);
+    printf("✓ Conocimiento restaurado desde '%s'\n", filename);
+    printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n",
+           n_arquetipos, n_dinamicas, n_relatores);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * INTERFAZ INTERACTIVA (Opcional)
+ * Loop REPL para experimentar con Aurora en tiempo real
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static int parse_trit(char c) {
+    if (c == 'u' || c == 'U') return TRIT_U;
+    if (c == 'c' || c == 'C') return TRIT_C;
+    if (c == 'n' || c == 'N') return TRIT_N;
+    return -1; /* error */
+}
+
+static void interactive_aurora_loop(void) {
+    char buffer[256];
+    
+    printf("\n╔═══════════════════════════════════════════════════════════════════╗\n");
+    printf("║  Aurora Interactive Mode                                          ║\n");
+    printf("║  Experimenta con tensores FFE en tiempo real                      ║\n");
+    printf("╚═══════════════════════════════════════════════════════════════════╝\n\n");
+    
+    printf("Comandos disponibles:\n");
+    printf("  'e <trits>'   - Emergencia: ingresa 9 trits (ej: e u c n c u u u c c)\n");
+    printf("  'c <trits>'   - Ciclo completo: ingresa 3 trits para semilla\n");
+    printf("  's <archivo>' - Guardar conocimiento\n");
+    printf("  'l <archivo>' - Cargar conocimiento\n");
+    printf("  'i'           - Información del sistema\n");
+    printf("  'q'           - Salir\n");
+    printf("────────────────────────────────────────────────────────────────────\n\n");
+    
+    while (1) {
+        printf("aurora> ");
+        if (!fgets(buffer, sizeof(buffer), stdin)) break;
+        
+        /* Limpiar newline */
+        size_t len = strlen(buffer);
+        if (len > 0 && buffer[len-1] == '\n') buffer[len-1] = '\0';
+        
+        if (strlen(buffer) == 0) continue;
+        
+        /* Comando: Salir */
+        if (buffer[0] == 'q' || buffer[0] == 'Q') {
+            printf("Hasta luego. Aurora permanecerá esperando...\n");
+            break;
+        }
+        
+        /* Comando: Emergencia */
+        else if (buffer[0] == 'e' || buffer[0] == 'E') {
+            Dimension d[3];
+            char* p = buffer + 2;
+            int idx = 0;
+            
+            /* Parsear 9 trits */
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    while (*p == ' ') p++;
+                    if (!*p) {
+                        printf("❌ Error: Se esperaban 9 trits, se obtuvieron %d\n", idx);
+                        goto next_cmd;
+                    }
+                    int val = parse_trit(*p);
+                    if (val == -1) {
+                        printf("❌ Error: Carácter inválido '%c' (usa u/c/n)\n", *p);
+                        goto next_cmd;
+                    }
+                    d[i].t[j] = val;
+                    p++;
+                    idx++;
+                }
+            }
+            
+            /* Validar vector */
+            Vector v_test = {{d[0], d[1], d[2]}};
+            if (!validate_vector(&v_test)) {
+                printf("⚠️  Vector inválido (auto-referencia detectada)\n");
+                goto next_cmd;
+            }
+            
+            /* Realizar emergencia */
+            Dimension synth;
+            EmergencyMemory mem;
+            emergence_function(d, &synth, &mem, ROLE_INFORMATIONAL);
+            
+            printf("\n  Input:  [%s,%s,%s] [%s,%s,%s] [%s,%s,%s]\n",
+                   ts(d[0].t[0]), ts(d[0].t[1]), ts(d[0].t[2]),
+                   ts(d[1].t[0]), ts(d[1].t[1]), ts(d[1].t[2]),
+                   ts(d[2].t[0]), ts(d[2].t[1]), ts(d[2].t[2]));
+            
+            printf("  Synth:  [%s,%s,%s]\n",
+                   ts(synth.t[0]), ts(synth.t[1]), ts(synth.t[2]));
+            
+            printf("  Memory: [%s,%s,%s]\n\n",
+                   ts(mem.me[0]), ts(mem.me[1]), ts(mem.me[2]));
+        }
+        
+        /* Comando: Ciclo Completo */
+        else if (buffer[0] == 'c' || buffer[0] == 'C') {
+            Dimension seed;
+            char* p = buffer + 2;
+            
+            /* Parsear 3 trits */
+            for (int i = 0; i < 3; i++) {
+                while (*p == ' ') p++;
+                if (!*p) {
+                    printf("❌ Error: Se esperaban 3 trits, se obtuvieron %d\n", i);
+                    goto next_cmd;
+                }
+                int val = parse_trit(*p);
+                if (val == -1) {
+                    printf("❌ Error: Carácter inválido '%c' (usa u/c/n)\n", *p);
+                    goto next_cmd;
+                }
+                seed.t[i] = val;
+                p++;
+            }
+            
+            /* Ejecutar ciclo (3 iteraciones = 1 ciclo completo) */
+            process_complete_cycle(&seed, 3);
+        }
+        
+        /* Comando: Guardar Conocimiento */
+        else if (buffer[0] == 's' || buffer[0] == 'S') {
+            char* filename = buffer + 2;
+            while (*filename == ' ') filename++;
+            if (*filename) {
+                save_knowledge(filename);
+            } else {
+                printf("❌ Error: Especifica nombre de archivo\n");
+            }
+        }
+        
+        /* Comando: Cargar Conocimiento */
+        else if (buffer[0] == 'l' || buffer[0] == 'L') {
+            char* filename = buffer + 2;
+            while (*filename == ' ') filename++;
+            if (*filename) {
+                load_knowledge(filename);
+            } else {
+                printf("❌ Error: Especifica nombre de archivo\n");
+            }
+        }
+        
+        /* Comando: Información del Sistema */
+        else if (buffer[0] == 'i' || buffer[0] == 'I') {
+            printf("\n┌──────────────────────────────────┐\n");
+            printf("│  Estado Interno del Sistema      │\n");
+            printf("└──────────────────────────────────┘\n");
+            printf("  Conocimiento Acumulado:\n");
+            printf("    • Arquetipos: %d\n", n_arquetipos);
+            printf("    • Dinámicas: %d\n", n_dinamicas);
+            printf("    • Relatores: %d\n", n_relatores);
+            printf("    • Revisión global: %lu\n\n", global_rev);
+            
+            printf("  Tensor C (Creencia Estable):\n");
+            printf("    [%s, %s, %s]\n\n", ts(tensor_C.t[0]), ts(tensor_C.t[1]), ts(tensor_C.t[2]));
+            
+            printf("  Axioma (Libertad-Orden-Propósito):\n");
+            printf("    • Libertad:  %s\n", ts(axiom_state.freedom));
+            printf("    • Orden:     %s\n", ts(axiom_state.order));
+            printf("    • Propósito: %s\n", ts(axiom_state.purpose));
+            printf("    • Balance:   %.3f\n\n", axiom_balance());
+            
+            printf("  Estado Energético (Cómo se SIENTE):\n");
+            printf("    • Tensión:   %s\n", ts(estado_energetico.tension));
+            printf("    • Entropía:  %s\n", ts(estado_energetico.entropy));
+            printf("    • Armonía:   %s\n\n", ts(estado_energetico.harmony));
+        }
+        
+        /* Comando no reconocido */
+        else {
+            printf("❌ Comando desconocido. Usa 'e', 'c', 's', 'l', 'i' o 'q'\n");
+        }
+        
+        next_cmd:
+        continue;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -822,7 +1183,7 @@ static void test_emergence_roundtrip(void) {
  * DEMO PRINCIPAL
  * ═══════════════════════════════════════════════════════════════════════ */
 
-int main(void) {
+int main(int argc, char* argv[]) {
     printf("╔═══════════════════════════════════════════════════════════════════╗\n");
     printf("║  Aurora Core v3.0 - Technical Annex Implementation              ║\n");
     printf("║  • Reversible Emergency Memories (me1, me2, me3)                 ║\n");
@@ -830,7 +1191,23 @@ int main(void) {
     printf("║  • Complete Cycle: Info → Knowledge → Energy → Info             ║\n");
     printf("║  • ES.index ≠ FO.index validation                               ║\n");
     printf("║  • Fibonacci ternary counter                                     ║\n");
+    printf("║  • Knowledge Persistence & Interactive Mode (NUEVO)              ║\n");
     printf("╚═══════════════════════════════════════════════════════════════════╝\n");
+    
+    /* Procesar argumentos de línea de comando */
+    if (argc > 1) {
+        if (strcmp(argv[1], "--interactive") == 0 || strcmp(argv[1], "-i") == 0) {
+            /* Modo interactivo */
+            load_knowledge("aurora_knowledge.bin");
+            interactive_aurora_loop();
+            save_knowledge("aurora_knowledge.bin");
+            return 0;
+        }
+        else if (strcmp(argv[1], "--load") == 0 && argc > 2) {
+            /* Cargar conocimiento y ejecutar demo */
+            load_knowledge(argv[2]);
+        }
+    }
     
     /* Inicializar Fibonacci counter */
     fib_init(&global_fib_counter);
@@ -922,20 +1299,34 @@ int main(void) {
            ts(valid.t[0]), ts(valid.t[1]), ts(valid.t[2]),
            validate_dimension(&valid) ? "✓ Válida" : "✗ Inválida");
     
+    /* Guardar conocimiento al finalizar */
+    save_knowledge("aurora_knowledge.bin");
+    
     /* Reporte final */
     printf("\n╔═══════════════════════════════════════════════════════════════════╗\n");
     printf("║  CONCLUSIÓN                                                       ║\n");
     printf("╠═══════════════════════════════════════════════════════════════════╣\n");
     printf("║  ✓ Emergencia reversible implementada                            ║\n");
-    printf("║  ✓ Trio Energético: Tensión/Comando/Energía                      ║\n");
+    printf("║  ✓ Estado Energético: Tensión/Entropía/Armonía                   ║\n");
     printf("║  ✓ Ciclo completo: Info→Knowledge→Energy→Info                    ║\n");
     printf("║  ✓ Validación ES.index ≠ FO.index                                ║\n");
     printf("║  ✓ Fibonacci ternario para selección de roles                    ║\n");
+    printf("║  ✓ Persistencia de Conocimiento (A-R-D)                          ║\n");
+    printf("║  ✓ Modo Interactivo REPL                                         ║\n");
     printf("║                                                                   ║\n");
     printf("║  Arquetipos: %-3d | Dinámicas: %-3d | Relatores: %-3d            ║\n",
            n_arquetipos, n_dinamicas, n_relatores);
     printf("║  Tensor C:   [%s,%s,%s]                                         ║\n",
            ts(tensor_C.t[0]), ts(tensor_C.t[1]), ts(tensor_C.t[2]));
+    printf("║                                                                   ║\n");
+    printf("║  NUEVAS CARACTERÍSTICAS:                                          ║\n");
+    printf("║    • save_knowledge() / load_knowledge()                          ║\n");
+    printf("║    • interactive_aurora_loop() modo REPL                          ║\n");
+    printf("║                                                                   ║\n");
+    printf("║  USO:                                                              ║\n");
+    printf("║    aurora_core_refactored.exe           [demo normal]             ║\n");
+    printf("║    aurora_core_refactored.exe -i        [modo interactivo]        ║\n");
+    printf("║    aurora_core_refactored.exe --load <file>  [cargar conocimiento]║\n");
     printf("║                                                                   ║\n");
     printf("║  Aurora piensa reorganizando energía,                            ║\n");
     printf("║  sintetizando coherencia,                                        ║\n");
@@ -945,3 +1336,5 @@ int main(void) {
     
     return 0;
 }
+
+
