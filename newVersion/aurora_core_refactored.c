@@ -1,5 +1,5 @@
 /*
- * aurora_core_refactored.c - Aurora Core v3.0
+ * aurora_core_refactored.c - Aurora Core v3.1.1 (Trigate-Pure)
  * 
  * Implementación completa siguiendo Technical Annex:
  * 1. FFE Tensor con roles trinarios (Informational, Cognitive, Energetic)
@@ -391,7 +391,154 @@ static Trit triadic_collapse(Trit a, Trit b, Trit c) {
     return TRIT_N;
 }
 
-/* Funciones de aprendizaje */
+/* ═══════════════════════════════════════════════════════════════════════════
+ * POLÍTICA LRU PARA MAX_MEM (v3.1) - VERSIÓN TRIGATE PURA
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * Principio autosimilar: La evicción emerge de comparar tensores de "edad"
+ * usando solo Trigates. No hay matemáticas, solo relaciones ternarias.
+ * 
+ * Proceso:
+ *   1. Convertir rev → Trit (U=nuevo, C=antiguo, N=indeterminado)
+ *   2. Comparar mediante Trigate en modo CONSENSUS
+ *   3. El "más antiguo" emerge como patrón dominante
+ *   4. Reorganizar array = colapsar tensor eliminando nivel inactivo
+ */
+
+/* Convertir timestamp relativo a Trit de "edad" */
+static Trit rev_to_age_trit(unsigned long rev, unsigned long max_rev) {
+    if (max_rev == 0) return TRIT_N;
+    
+    /* Dividir rango en tercios usando Fibonacci-like distribution */
+    unsigned long third = max_rev / 3;
+    
+    if (rev >= max_rev - third) return TRIT_U;      /* Reciente → U (1) */
+    else if (rev <= third) return TRIT_C;            /* Antiguo → C (0) */
+    else return TRIT_N;                              /* Medio → N (null) */
+}
+
+/* Comparar dos trits de edad usando Trigate: retorna índice del más antiguo */
+static int trigate_compare_age(Trit age_a, Trit age_b) {
+    /* Trigate en modo CONSENSUS: busca el trit "menor" (más antiguo) */
+    Trit result = trit_infer(age_a, age_b, TRIT_N); /* CONSENSUS mode */
+    
+    /* Decodificar resultado ternario:
+     *   C (0) → a es más antiguo
+     *   U (1) → b es más antiguo  
+     *   N     → empate, mantener a
+     */
+    if (result == TRIT_C || result == TRIT_N) return 0; /* a gana */
+    return 1; /* b gana */
+}
+
+/* Encontrar índice del más antiguo mediante cascada de Trigates */
+static int find_oldest_by_trigate(unsigned long* revs, int count) {
+    if (count == 0) return -1;
+    if (count == 1) return 0;
+    
+    /* Encontrar max_rev para normalización */
+    unsigned long max_rev = revs[0];
+    for (int i = 1; i < count; i++) {
+        if (revs[i] > max_rev) max_rev = revs[i];
+    }
+    
+    /* Convertir todos los rev a trits de edad */
+    Trit ages[MAX_MEM];
+    for (int i = 0; i < count; i++) {
+        ages[i] = rev_to_age_trit(revs[i], max_rev);
+    }
+    
+    /* Cascada de Trigates para encontrar el mínimo (más antiguo) */
+    int oldest_idx = 0;
+    Trit oldest_age = ages[0];
+    
+    for (int i = 1; i < count; i++) {
+        int winner = trigate_compare_age(oldest_age, ages[i]);
+        if (winner == 1) { /* ages[i] es más antiguo */
+            oldest_idx = i;
+            oldest_age = ages[i];
+        }
+    }
+    
+    return oldest_idx;
+}
+
+/* Reorganizar array = Colapso tensorial tras eliminar nivel */
+static void collapse_array_arquetipos(int remove_idx) {
+    /* Colapso fractal: el nivel eliminado desaparece,
+     * los niveles superiores descienden manteniendo coherencia */
+    for (int i = remove_idx; i < n_arquetipos - 1; i++) {
+        arquetipos[i] = arquetipos[i + 1];
+    }
+    n_arquetipos--;
+}
+
+static void collapse_array_dinamicas(int remove_idx) {
+    for (int i = remove_idx; i < n_dinamicas - 1; i++) {
+        dinamicas[i] = dinamicas[i + 1];
+    }
+    n_dinamicas--;
+}
+
+static void collapse_array_relatores(int remove_idx) {
+    for (int i = remove_idx; i < n_relatores - 1; i++) {
+        relatores[i] = relatores[i + 1];
+    }
+    n_relatores--;
+}
+
+/* Evicción mediante emergencia de "edad" desde Trigates */
+static void evict_oldest_arquetipo(void) {
+    if (n_arquetipos == 0) return;
+    
+    /* Extraer revs en array para comparación ternaria */
+    unsigned long revs[MAX_MEM];
+    for (int i = 0; i < n_arquetipos; i++) {
+        revs[i] = arquetipos[i].rev;
+    }
+    
+    /* Encontrar el más antiguo mediante cascada de Trigates */
+    int oldest_idx = find_oldest_by_trigate(revs, n_arquetipos);
+    
+    if (oldest_idx >= 0) {
+        collapse_array_arquetipos(oldest_idx);
+    }
+}
+
+static void evict_oldest_dinamica(void) {
+    if (n_dinamicas == 0) return;
+    
+    unsigned long revs[MAX_MEM];
+    for (int i = 0; i < n_dinamicas; i++) {
+        revs[i] = dinamicas[i].rev;
+    }
+    
+    int oldest_idx = find_oldest_by_trigate(revs, n_dinamicas);
+    
+    if (oldest_idx >= 0) {
+        collapse_array_dinamicas(oldest_idx);
+    }
+}
+
+static void evict_oldest_relator(void) {
+    if (n_relatores == 0) return;
+    
+    unsigned long revs[MAX_MEM];
+    for (int i = 0; i < n_relatores; i++) {
+        revs[i] = relatores[i].rev;
+    }
+    
+    int oldest_idx = find_oldest_by_trigate(revs, n_relatores);
+    
+    if (oldest_idx >= 0) {
+        collapse_array_relatores(oldest_idx);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * APRENDIZAJE (LEARNING) - Memoria A-R-D con LRU
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
 static void learn_arquetipo(const Trit pattern[3], Trit fo_out) {
     for (int i = 0; i < n_arquetipos; i++) {
         if (memcmp(arquetipos[i].pattern, pattern, 3 * sizeof(Trit)) == 0) {
@@ -404,13 +551,16 @@ static void learn_arquetipo(const Trit pattern[3], Trit fo_out) {
         }
     }
     
-    if (n_arquetipos < MAX_MEM) {
-        memcpy(arquetipos[n_arquetipos].pattern, pattern, 3 * sizeof(Trit));
-        arquetipos[n_arquetipos].fo_output = fo_out;
-        arquetipos[n_arquetipos].support = 1;
-        arquetipos[n_arquetipos].rev = global_rev++;
-        n_arquetipos++;
+    /* v3.1: LRU eviction cuando MAX_MEM está saturado */
+    if (n_arquetipos >= MAX_MEM) {
+        evict_oldest_arquetipo();
     }
+    
+    memcpy(arquetipos[n_arquetipos].pattern, pattern, 3 * sizeof(Trit));
+    arquetipos[n_arquetipos].fo_output = fo_out;
+    arquetipos[n_arquetipos].support = 1;
+    arquetipos[n_arquetipos].rev = global_rev++;
+    n_arquetipos++;
 }
 
 static void learn_dinamica(const Trit before[3], const Trit after[3], Trit fn_out) {
@@ -426,14 +576,17 @@ static void learn_dinamica(const Trit before[3], const Trit after[3], Trit fn_ou
         }
     }
     
-    if (n_dinamicas < MAX_MEM) {
-        memcpy(dinamicas[n_dinamicas].state_before, before, 3 * sizeof(Trit));
-        memcpy(dinamicas[n_dinamicas].state_after, after, 3 * sizeof(Trit));
-        dinamicas[n_dinamicas].fn_output = fn_out;
-        dinamicas[n_dinamicas].support = 1;
-        dinamicas[n_dinamicas].rev = global_rev++;
-        n_dinamicas++;
+    /* v3.1: LRU eviction cuando MAX_MEM está saturado */
+    if (n_dinamicas >= MAX_MEM) {
+        evict_oldest_dinamica();
     }
+    
+    memcpy(dinamicas[n_dinamicas].state_before, before, 3 * sizeof(Trit));
+    memcpy(dinamicas[n_dinamicas].state_after, after, 3 * sizeof(Trit));
+    dinamicas[n_dinamicas].fn_output = fn_out;
+    dinamicas[n_dinamicas].support = 1;
+    dinamicas[n_dinamicas].rev = global_rev++;
+    n_dinamicas++;
 }
 
 static void learn_relator(const Trit a[3], const Trit b[3], const Trit m[3]) {
@@ -442,42 +595,68 @@ static void learn_relator(const Trit a[3], const Trit b[3], const Trit m[3]) {
             memcmp(relatores[i].dim_b, b, 3 * sizeof(Trit)) == 0) {
             relatores[i].support++;
             relatores[i].rev = global_rev++;
+            
+            /* v3.1: Aprendizaje granular por posición con threshold de soporte */
             for (int k = 0; k < 3; k++) {
-                if (relatores[i].mode[k] != m[k] && m[k] != TRIT_N) {
-                    relatores[i].mode[k] = TRIT_N;
+                if (m[k] == TRIT_N) continue; /* No aprender nulls */
+                
+                if (relatores[i].support >= 5) {
+                    /* Alto soporte → aprendizaje granular por posición */
+                    if (relatores[i].mode[k] == TRIT_N || relatores[i].mode[k] == m[k]) {
+                        relatores[i].mode[k] = m[k]; /* Reforzar o establecer */
+                    } else {
+                        relatores[i].mode[k] = TRIT_N; /* Contradicción → null */
+                    }
+                } else {
+                    /* Bajo soporte → solo invalidar si contradice */
+                    if (relatores[i].mode[k] != m[k] && m[k] != TRIT_N) {
+                        relatores[i].mode[k] = TRIT_N;
+                    }
                 }
             }
             return;
         }
     }
     
-    if (n_relatores < MAX_MEM) {
-        memcpy(relatores[n_relatores].dim_a, a, 3 * sizeof(Trit));
-        memcpy(relatores[n_relatores].dim_b, b, 3 * sizeof(Trit));
-        memcpy(relatores[n_relatores].mode, m, 3 * sizeof(Trit));
-        relatores[n_relatores].support = 1;
-        relatores[n_relatores].rev = global_rev++;
-        n_relatores++;
+    /* v3.1: LRU eviction cuando MAX_MEM está saturado */
+    if (n_relatores >= MAX_MEM) {
+        evict_oldest_relator();
     }
+    
+    memcpy(relatores[n_relatores].dim_a, a, 3 * sizeof(Trit));
+    memcpy(relatores[n_relatores].dim_b, b, 3 * sizeof(Trit));
+    memcpy(relatores[n_relatores].mode, m, 3 * sizeof(Trit));
+    relatores[n_relatores].support = 1;
+    relatores[n_relatores].rev = global_rev++;
+    n_relatores++;
 }
 
 /* Actualizar Tensor C desde conocimiento acumulado A-R-D */
 static void update_tensor_C(void) {
     /* Convergencia triádica: Arquetipo + Relator + Dinámica → Creencia */
     if (n_arquetipos > 0 && n_dinamicas > 0 && n_relatores > 0) {
-        /* Seleccionar los más estables (mayor soporte) */
+        /* v3.1: Seleccionar los más estables (mayor soporte, desempate por rev) */
         Arquetipo* best_arq = &arquetipos[0];
         Dinamica* best_dyn = &dinamicas[0];
         Relator* best_rel = &relatores[0];
         
         for (int i = 1; i < n_arquetipos; i++) {
-            if (arquetipos[i].support > best_arq->support) best_arq = &arquetipos[i];
+            if (arquetipos[i].support > best_arq->support || 
+                (arquetipos[i].support == best_arq->support && arquetipos[i].rev > best_arq->rev)) {
+                best_arq = &arquetipos[i];
+            }
         }
         for (int i = 1; i < n_dinamicas; i++) {
-            if (dinamicas[i].support > best_dyn->support) best_dyn = &dinamicas[i];
+            if (dinamicas[i].support > best_dyn->support || 
+                (dinamicas[i].support == best_dyn->support && dinamicas[i].rev > best_dyn->rev)) {
+                best_dyn = &dinamicas[i];
+            }
         }
         for (int i = 1; i < n_relatores; i++) {
-            if (relatores[i].support > best_rel->support) best_rel = &relatores[i];
+            if (relatores[i].support > best_rel->support || 
+                (relatores[i].support == best_rel->support && relatores[i].rev > best_rel->rev)) {
+                best_rel = &relatores[i];
+            }
         }
         
         /* Síntesis triádica en cada dimensión */
@@ -529,33 +708,36 @@ static void emergence_function(
     EmergencyMemory* mem_out,
     VectorRole current_role
 ) {
-    /* Sintetizar dimensión superior usando trigates rotativos */
-    Trit modos[3];
-    modos[0] = trit_learn(d[0].t[1], d[1].t[1], d[2].t[1]);
-    modos[1] = trit_learn(d[1].t[1], d[2].t[1], d[0].t[1]);
-    modos[2] = trit_learn(d[2].t[1], d[0].t[1], d[1].t[1]);
-    
-    /* Sintetizar FO superior usando votación ponderada (no solo consenso) */
-    Trit r1 = trit_infer(d[0].t[0], d[1].t[0], modos[0]);
-    Trit r2 = trit_infer(d[1].t[0], d[2].t[0], modos[1]);
-    Trit r3 = trit_infer(d[2].t[0], d[0].t[0], modos[2]);
-    
-    ds_out->t[0] = triadic_collapse(r1, r2, r3); /* FO superior - mayoría gana */
-    
-    /* Sintetizar FN y ES con votación */
-    ds_out->t[1] = triadic_collapse(modos[0], modos[1], modos[2]);
-    ds_out->t[2] = triadic_collapse(d[0].t[2], d[1].t[2], d[2].t[2]);
-    
-    /* Generar memorias de emergencia INFORMATIVAS (reversibles) */
-    /* Almacenar resultados intermedios para reconstrucción precisa */
-    mem_out->me[0] = r1;  /* me1: resultado combinación 0-1 */
-    mem_out->me[1] = r2;  /* me2: resultado combinación 1-2 */
-    mem_out->me[2] = r3;  /* me3: resultado combinación 2-0 */
+    /* Triada autosimilar (Technical Annex §6.1, §3.3.5.1):
+       - FO pares usan modo ES_i
+       - FN pares usan modo FO_i
+       - ES pares usan modo FN_i */
+
+    Trit rFO[3];
+    Trit rFN[3];
+    Trit rES[3];
+
+    for (int i = 0; i < 3; i++) {
+        int j = (i + 1) % 3;
+        rFO[i] = trit_infer(d[i].t[0], d[j].t[0], d[i].t[2]);
+        rFN[i] = trit_infer(d[i].t[1], d[j].t[1], d[i].t[0]);
+        rES[i] = trit_infer(d[i].t[2], d[j].t[2], d[i].t[1]);
+    }
+
+    /* Síntesis superior por colapso triádico */
+    ds_out->t[0] = triadic_collapse(rFO[0], rFO[1], rFO[2]);
+    ds_out->t[1] = triadic_collapse(rFN[0], rFN[1], rFN[2]);
+    ds_out->t[2] = triadic_collapse(rES[0], rES[1], rES[2]);
+
+    /* Memorias de emergencia informacionales (breadcrumbs) */
+    mem_out->me[0] = rFO[0];
+    mem_out->me[1] = rFO[1];
+    mem_out->me[2] = rFO[2];
     
     /* Aprender según rol actual */
     if (current_role == ROLE_INFORMATIONAL) {
         /* En modo INFO → aprender arquetipo */
-        learn_arquetipo(modos, ds_out->t[0]);
+        learn_arquetipo(rFN, ds_out->t[0]);
     } else if (current_role == ROLE_COGNITIVE) {
         /* En modo COGNITIVE → actualizar sensación energética + tensor C */
         EnergeticState feeling = extract_energetic_state(mem_out, current_role);
@@ -588,22 +770,258 @@ static void extend_function(
     const EmergencyMemory* mem,
     Dimension d_out[3]
 ) {
-    /* Reconstruir cada dimensión inferior desde síntesis + memorias */
+    /* Reconstrucción coherente guiada por síntesis y breadcrumbs.
+       Mantiene autosimilitud sin inversión rígida. */
     for (int i = 0; i < 3; i++) {
-        /* FO: combinar síntesis superior con memoria intermedia */
-        Trit fo_base = (ds->t[0] != TRIT_N) ? ds->t[0] : TRIT_C;
-        d_out[i].t[0] = trit_infer(fo_base, mem->me[i], TRIT_U); /* OR para preservar info */
-        
-        /* FN: rotar memorias para distribuir información */
-        d_out[i].t[1] = mem->me[(i+1)%3];
-        
-        /* ES: propagar estructura superior o usar memoria rotada */
-        d_out[i].t[2] = (ds->t[2] != TRIT_N) ? ds->t[2] : mem->me[(i+2)%3];
+        /* FO: usar síntesis FO con memoria local y modo FN_s */
+        Trit m_fo = (ds->t[1] != TRIT_N) ? ds->t[1] : TRIT_U;
+        d_out[i].t[0] = trit_infer(ds->t[0], mem->me[i], m_fo);
+
+        /* FN: distribuir desde FO_s y memoria vecina */
+        Trit m_fn = (ds->t[0] != TRIT_N) ? ds->t[0] : TRIT_N;
+        d_out[i].t[1] = trit_infer(d_out[i].t[0], mem->me[(i+1)%3], m_fn);
+
+        /* ES: propagar desde ES_s con acoplamiento a FN reconstruido */
+        Trit m_es = (ds->t[1] != TRIT_N) ? ds->t[1] : TRIT_N;
+        d_out[i].t[2] = trit_infer(ds->t[2], d_out[i].t[1], m_es);
     }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
- * CLUSTER TENSORIAL CON VENTANAS DESLIZANTES (Transcender)
+ * DESTILADOR (Especificación Operacional)
+ * Produce dimensiones destiladas donde todos los trits comparten el mismo rol.
+ * Opera con Trigates en pares: (d₁–d₂), (d₂–d₃), (d₃–d₁)
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    Dimension fo_destilada;  /* {FO′, FO″, FO‴} */
+    Dimension fn_destilada;  /* {FN′, FN″, FN‴} */
+    Dimension es_destilada;  /* {ES′, ES″, ES‴} */
+} DimensionesDestiladas;
+
+static void destilador(const Dimension d[3], DimensionesDestiladas* out) {
+    /* ES destilada: recopilación directa sin procesamiento */
+    out->es_destilada.t[0] = d[0].t[2];
+    out->es_destilada.t[1] = d[1].t[2];
+    out->es_destilada.t[2] = d[2].t[2];
+
+    /* Procesar pares: (d₁–d₂), (d₂–d₃), (d₃–d₁) */
+    for (int i = 0; i < 3; i++) {
+        int j = (i + 1) % 3;
+
+        /* Trigate de Forma: A=FO_i, B=FO_j */
+        Trit fo_a = d[i].t[0];
+        Trit fo_b = d[j].t[0];
+
+        /* Trigate de Función: A=FN_i, B=FN_j */
+        Trit fn_a = d[i].t[1];
+        Trit fn_b = d[j].t[1];
+
+        /* Aprender modo de FN → usar como operador de FO */
+        Trit m_fn = trit_infer(fn_a, fn_b, TRIT_N); /* CONSENSUS inicial */
+        Trit r_fo = trit_infer(fo_a, fo_b, m_fn);
+
+        /* El resultado R_FO va a dimensión destilada de Forma */
+        out->fo_destilada.t[i] = r_fo;
+
+        /* El modo M_FN va a dimensión destilada de Función */
+        out->fn_destilada.t[i] = m_fn;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * CICLO EMERGENTE (Especificación Operacional)
+ * Aplica funciones de emergencia sobre dimensiones destiladas.
+ * Genera: tensor emergente superior + tensor de conocimiento
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    Dimension ds;            /* Dimensión emergente superior */
+    Vector conocimiento;     /* Vector de conocimiento (breadcrumbs) */
+} ResultadoEmergencia;
+
+static void ciclo_emergente(
+    const DimensionesDestiladas* destiladas,
+    ResultadoEmergencia* out
+) {
+    /* Aplicar emergencia a cada dimensión destilada */
+    Dimension temp[3];
+    EmergencyMemory mem[3];
+
+    /* Procesar FO destilada */
+    temp[0] = destiladas->fo_destilada;
+    temp[1] = destiladas->fo_destilada; /* autosimilitud */
+    temp[2] = destiladas->fo_destilada;
+    emergence_function(temp, &out->ds, &mem[0], ROLE_INFORMATIONAL);
+
+    /* Almacenar conocimiento (breadcrumbs) */
+    out->conocimiento.d[0].t[0] = mem[0].me[0];
+    out->conocimiento.d[0].t[1] = mem[0].me[1];
+    out->conocimiento.d[0].t[2] = mem[0].me[2];
+
+    /* Procesar FN destilada */
+    temp[0] = destiladas->fn_destilada;
+    temp[1] = destiladas->fn_destilada;
+    temp[2] = destiladas->fn_destilada;
+    Dimension ds_fn;
+    emergence_function(temp, &ds_fn, &mem[1], ROLE_INFORMATIONAL);
+
+    out->conocimiento.d[1].t[0] = mem[1].me[0];
+    out->conocimiento.d[1].t[1] = mem[1].me[1];
+    out->conocimiento.d[1].t[2] = mem[1].me[2];
+
+    /* Procesar ES destilada */
+    temp[0] = destiladas->es_destilada;
+    temp[1] = destiladas->es_destilada;
+    temp[2] = destiladas->es_destilada;
+    Dimension ds_es;
+    emergence_function(temp, &ds_es, &mem[2], ROLE_INFORMATIONAL);
+
+    out->conocimiento.d[2].t[0] = mem[2].me[0];
+    out->conocimiento.d[2].t[1] = mem[2].me[1];
+    out->conocimiento.d[2].t[2] = mem[2].me[2];
+
+    /* Combinar resultados en dimensión superior */
+    out->ds.t[0] = triadic_collapse(out->ds.t[0], ds_fn.t[0], ds_es.t[0]);
+    out->ds.t[1] = triadic_collapse(out->ds.t[1], ds_fn.t[1], ds_es.t[1]);
+    out->ds.t[2] = triadic_collapse(out->ds.t[2], ds_fn.t[2], ds_es.t[2]);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * EXTENSOR (DESARROLLADOR) (Especificación Operacional)
+ * Reconstruye dimensiones destiladas desde síntesis + conocimiento
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static void extensor(
+    const Dimension* ds,
+    const Vector* conocimiento,
+    DimensionesDestiladas* out
+) {
+    /* Extender cada rol usando conocimiento almacenado */
+    Dimension temp_out[3];
+    EmergencyMemory mem;
+
+    /* Reconstruir FO destilada */
+    mem.me[0] = conocimiento->d[0].t[0];
+    mem.me[1] = conocimiento->d[0].t[1];
+    mem.me[2] = conocimiento->d[0].t[2];
+    extend_function(ds, &mem, temp_out);
+    out->fo_destilada = temp_out[0];
+
+    /* Reconstruir FN destilada */
+    mem.me[0] = conocimiento->d[1].t[0];
+    mem.me[1] = conocimiento->d[1].t[1];
+    mem.me[2] = conocimiento->d[1].t[2];
+    extend_function(ds, &mem, temp_out);
+    out->fn_destilada = temp_out[1];
+
+    /* Reconstruir ES destilada */
+    mem.me[0] = conocimiento->d[2].t[0];
+    mem.me[1] = conocimiento->d[2].t[1];
+    mem.me[2] = conocimiento->d[2].t[2];
+    extend_function(ds, &mem, temp_out);
+    out->es_destilada = temp_out[2];
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * COMPOSITOR (Especificación Operacional)
+ * Reconstruye dimensiones originales desde destiladas + conocimiento
+ * Usa pares de Trigates para resolver coherencia vs creatividad
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static void compositor(
+    const DimensionesDestiladas* destiladas,
+    const Vector* conocimiento,
+    Dimension d_out[3]
+) {
+    for (int i = 0; i < 3; i++) {
+        /* Trigate 1: resolver coherencia
+           R = FO destilada[i]
+           M = FN conocimiento[i] */
+        Trit r1 = destiladas->fo_destilada.t[i];
+        Trit m1 = conocimiento->d[i].t[1];
+
+        /* Trigate 2: resolver creatividad
+           R = FO conocimiento[i]
+           M = FN destilada[i] */
+        Trit r2 = conocimiento->d[i].t[0];
+        Trit m2 = destiladas->fn_destilada.t[i];
+
+        /* Buscar A y B que satisfagan ambos trigates
+           Simplificación: usar deducción desde r1 */
+        Trit b_coherencia = trit_deduce_b(TRIT_U, m1, r1);
+        Trit a_compartido = (b_coherencia != TRIT_N) ? b_coherencia : TRIT_N;
+
+        d_out[i].t[0] = (a_compartido != TRIT_N) ? a_compartido : r1;
+        d_out[i].t[1] = m2;
+        d_out[i].t[2] = destiladas->es_destilada.t[i];
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * TRANSCENDER COMPLETO (Pipeline)
+ * Ventana de operación → Destilador → Ciclo Emergente → Extensor → Compositor
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    Vector tensor_emergente;   /* Salida del Transcender */
+    Vector conocimiento;       /* Conocimiento generado */
+    Dimension comando;         /* Comandos de operación */
+} TranscenderOutput;
+
+static void transcender(
+    const Vector ventana[3],  /* T1, T2, T3 */
+    TranscenderOutput* out
+) {
+    /* Fase 1: Destilador - procesar combinaciones transversales */
+    DimensionesDestiladas dest[3];
+    for (int i = 0; i < 3; i++) {
+        Dimension combo[3];
+        combo[0] = ventana[0].d[i];
+        combo[1] = ventana[1].d[i];
+        combo[2] = ventana[2].d[i];
+        destilador(combo, &dest[i]);
+    }
+
+    /* Fase 2: Ciclo Emergente - sintetizar */
+    ResultadoEmergencia emerg[3];
+    for (int i = 0; i < 3; i++) {
+        ciclo_emergente(&dest[i], &emerg[i]);
+    }
+
+    /* Formar vector emergente */
+    out->tensor_emergente.d[0] = emerg[0].ds;
+    out->tensor_emergente.d[1] = emerg[1].ds;
+    out->tensor_emergente.d[2] = emerg[2].ds;
+
+    /* Unificar conocimiento */
+    out->conocimiento = emerg[0].conocimiento;
+
+    /* Emergencia final para comando */
+    Dimension temp_cmd[3];
+    temp_cmd[0] = emerg[0].ds;
+    temp_cmd[1] = emerg[1].ds;
+    temp_cmd[2] = emerg[2].ds;
+    EmergencyMemory mem_cmd;
+    emergence_function(temp_cmd, &out->comando, &mem_cmd, ROLE_COGNITIVE);
+
+    /* Fase 3: Extensor - reconstruir si es necesario */
+    DimensionesDestiladas dest_rec[3];
+    for (int i = 0; i < 3; i++) {
+        extensor(&emerg[i].ds, &emerg[i].conocimiento, &dest_rec[i]);
+    }
+
+    /* Fase 4: Compositor - ensamblar salida final */
+    Dimension dims_out[3];
+    for (int i = 0; i < 3; i++) {
+        compositor(&dest_rec[i], &emerg[i].conocimiento, dims_out);
+        /* Actualizar tensor emergente con composición */
+        out->tensor_emergente.d[i] = dims_out[i];
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * CLUSTER TENSORIAL CON VENTANAS DESLIZANTES (Pipeline completo)
  * Procesa secuencias de tensores FFE en ventanas ternarias y asciende
  * fractalmente hasta obtener síntesis profundas. Los niveles inferiores
  * quedan desactivados tras cada síntesis (se mantienen solo para extensión).
@@ -651,43 +1069,93 @@ static int process_cluster_level(const Vector* tensors, int count, VectorRole ro
 
 /* Pipeline fractal ascendente hasta converger o quedar <3 tensores */
 static void cluster_pipeline(Vector* tensors, int count) {
-    Vector levels[2][MAX_CLUSTER];
-    int curr = 0;
-    int n = count;
-    memcpy(levels[curr], tensors, count * sizeof(Vector));
-
-    printf("\n━━━ PIPELINE DE CLUSTER TENSORIAL ━━━\n");
-    int depth = 0;
-    VectorRole role = ROLE_INFORMATIONAL;
-
-    while (n >= 3 && depth < 6) {
-        printf("\nNivel %d (rol %s) - %d tensores\n", depth, role_name(role), n);
-        for (int i = 0; i < n; i++) print_vector(&levels[curr][i], "t", i);
-
-        int next = curr ^ 1;
-        n = process_cluster_level(levels[curr], n, role, levels[next]);
-        curr = next;
-        depth++;
-        role = next_role_in_cycle(role);
+    if (count < 3) {
+        printf("  ⚠️  Cluster insuficiente (requiere ≥3 tensores)\n");
+        return;
     }
 
-    printf("\nNivel final %d - %d tensores activos\n", depth, n);
-    for (int i = 0; i < n; i++) print_vector(&levels[curr][i], "S", i);
-    printf("── Desactivación fractal: los niveles inferiores quedan latentes.\n");
+    printf("\n━━━ PIPELINE DE CLUSTER TENSORIAL (TRANSCENDER) ━━━\n");
+    printf("  Ventanas procesadas:\n");
+
+    /* Procesar ventanas deslizantes */
+    for (int i = 0; i + 2 < count && i < 5; i++) {
+        Vector ventana[3];
+        ventana[0] = tensors[i];
+        ventana[1] = tensors[i+1];
+        ventana[2] = tensors[i+2];
+
+        TranscenderOutput out;
+        transcender(ventana, &out);
+
+        printf("\n  Ventana [%d,%d,%d]:\n", i, i+1, i+2);
+        printf("    Emergente: [%s,%s,%s] [%s,%s,%s] [%s,%s,%s]\n",
+               ts(out.tensor_emergente.d[0].t[0]), ts(out.tensor_emergente.d[0].t[1]), ts(out.tensor_emergente.d[0].t[2]),
+               ts(out.tensor_emergente.d[1].t[0]), ts(out.tensor_emergente.d[1].t[1]), ts(out.tensor_emergente.d[1].t[2]),
+               ts(out.tensor_emergente.d[2].t[0]), ts(out.tensor_emergente.d[2].t[1]), ts(out.tensor_emergente.d[2].t[2]));
+        printf("    Comando:   [%s,%s,%s]\n",
+               ts(out.comando.t[0]), ts(out.comando.t[1]), ts(out.comando.t[2]));
+    }
+
+    printf("\n── Procesamiento completado.\n");
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
- * ARMONIZADOR (con trio energético)
+ * SELECCIÓN POR CONSENSO TRINARIO (sin métricas convencionales)
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+static Trit consensus3(const Trit a[3], const Trit b[3]) {
+    Trit m0 = trit_consensus(a[0], b[0]);
+    Trit m1 = trit_consensus(a[1], b[1]);
+    Trit m2 = trit_consensus(a[2], b[2]);
+    return triadic_collapse(m0, m1, m2);
+}
+
+/* Seleccionar el primer match con consenso no-nulo */
+static int find_best_match_arquetipo(const Trit pattern[3]) {
+    if (n_arquetipos == 0) return -1;
+    for (int i = 0; i < n_arquetipos; i++) {
+        if (consensus3(pattern, arquetipos[i].pattern) != TRIT_N) return i;
+    }
+    return -1;
+}
+
+static int find_best_match_relator(const Trit dim_a[3], const Trit dim_b[3]) {
+    if (n_relatores == 0) return -1;
+    for (int i = 0; i < n_relatores; i++) {
+        Trit ca = consensus3(dim_a, relatores[i].dim_a);
+        Trit cb = consensus3(dim_b, relatores[i].dim_b);
+        if (triadic_collapse(ca, cb, TRIT_C) != TRIT_N) return i;
+    }
+    return -1;
+}
+
+static int find_best_match_dinamica(const Trit state_before[3]) {
+    if (n_dinamicas == 0) return -1;
+    for (int i = 0; i < n_dinamicas; i++) {
+        if (consensus3(state_before, dinamicas[i].state_before) != TRIT_N) return i;
+    }
+    return -1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * ARMONIZADOR CON BEST-MATCH POR SIMILITUD (v3.1)
  * ═══════════════════════════════════════════════════════════════════════ */
 
 static int armonizador(Dimension* d, const Arquetipo* arq, const Dinamica* dyn, const Relator* rel) {
     const int THRESH = 2;
     
+    /* v3.1: Buscar best-match por similitud en vez de usar índice 0 fijo */
+    int best_arq_idx = find_best_match_arquetipo(d->t);
+    int best_dyn_idx = find_best_match_dinamica(d->t);
+    
+    const Arquetipo* use_arq = (best_arq_idx >= 0) ? &arquetipos[best_arq_idx] : arq;
+    const Dinamica* use_dyn = (best_dyn_idx >= 0) ? &dinamicas[best_dyn_idx] : dyn;
+    
     /* Calcular fiabilidad ternaria de cada memoria */
-    Trit r_arq = (arq && arq->fo_output != TRIT_N && arq->support >= THRESH) ? TRIT_U : 
-                 (arq ? TRIT_C : TRIT_N);
-    Trit r_dyn = (dyn && dyn->fn_output != TRIT_N && dyn->support >= THRESH) ? TRIT_U : 
-                 (dyn ? TRIT_C : TRIT_N);
+    Trit r_arq = (use_arq && use_arq->fo_output != TRIT_N && use_arq->support >= THRESH) ? TRIT_U : 
+                 (use_arq ? TRIT_C : TRIT_N);
+    Trit r_dyn = (use_dyn && use_dyn->fn_output != TRIT_N && use_dyn->support >= THRESH) ? TRIT_U : 
+                 (use_dyn ? TRIT_C : TRIT_N);
     Trit r_rel = (rel && rel->mode[0] != TRIT_N && rel->support >= THRESH) ? TRIT_U : 
                  (rel ? TRIT_C : TRIT_N);
     
@@ -701,8 +1169,8 @@ static int armonizador(Dimension* d, const Arquetipo* arq, const Dinamica* dyn, 
         /* Selección usando triadic collapse entre memorias */
         Trit mem_values[3] = {TRIT_N, TRIT_N, TRIT_N};
         
-        if (i == 0 && arq) mem_values[0] = arq->fo_output;
-        if (i == 1 && dyn) mem_values[0] = dyn->fn_output;
+        if (i == 0 && use_arq) mem_values[0] = use_arq->fo_output;
+        if (i == 1 && use_dyn) mem_values[0] = use_dyn->fn_output;
         if (i == 2 && rel) mem_values[0] = rel->mode[0];
         
         /* Triadic collapse con ponderación por fiabilidad */
@@ -710,8 +1178,8 @@ static int armonizador(Dimension* d, const Arquetipo* arq, const Dinamica* dyn, 
         if (prelim == TRIT_U) {
             if (r_arq == TRIT_U && mem_values[0] != TRIT_N) {
                 candidato = mem_values[0];
-            } else if (r_dyn == TRIT_U && i == 1 && dyn) {
-                candidato = dyn->fn_output;
+            } else if (r_dyn == TRIT_U && i == 1 && use_dyn) {
+                candidato = use_dyn->fn_output;
             }
         }
         
@@ -903,6 +1371,9 @@ static void save_knowledge(const char* filename) {
     fwrite(&axiom_state, sizeof(AxiomTrio), 1, f);
     fwrite(&estado_energetico, sizeof(EnergeticState), 1, f);
     
+    /* v3.1: Guardar estado del contador Fibonacci */
+    fwrite(&global_fib_counter, sizeof(FibCounter), 1, f);
+    
     fclose(f);
     printf("✓ Conocimiento guardado en '%s'\n", filename);
     printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n",
@@ -940,6 +1411,12 @@ static void load_knowledge(const char* filename) {
     /* Recuperar axiom state y energetic state */
     fread(&axiom_state, sizeof(AxiomTrio), 1, f);
     fread(&estado_energetico, sizeof(EnergeticState), 1, f);
+    
+    /* v3.1: Recuperar estado del contador Fibonacci */
+    if (fread(&global_fib_counter, sizeof(FibCounter), 1, f) != 1) {
+        /* Si no existe en archivo viejo, inicializar */
+        fib_init(&global_fib_counter);
+    }
     
     fclose(f);
     printf("✓ Conocimiento restaurado desde '%s'\n", filename);
