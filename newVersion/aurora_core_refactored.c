@@ -231,6 +231,18 @@ static FibCounter global_fib_counter = {0, 1, 1};
  * Regla absoluta: ES.index ≠ FO.index
  * ═══════════════════════════════════════════════════════════════════════ */
 
+/* Selector de posición ES determinista (Fibonacci base-3, sin mezcla) */
+static int counter_select_es_position(void) {
+    static FibCounter fc_spec;
+    static int initialized = 0;
+    if (!initialized) {
+        fib_init(&fc_spec);
+        initialized = 1;
+    }
+    fib_next(&fc_spec);
+    return (fc_spec.fib_b % 3);
+}
+
 static int validate_dimension(const Dimension* d) {
     /* Si está completamente nula, no es válida */
     if (d->t[0] == TRIT_N && d->t[1] == TRIT_N && d->t[2] == TRIT_N) {
@@ -242,9 +254,8 @@ static int validate_dimension(const Dimension* d) {
         return 0;
     }
 
-    /* Seleccionar cuál trit actúa como ES vía contador Fibonacci */
-    int es_idx = fib_select_role(&global_fib_counter);
-    fib_next(&global_fib_counter);
+    /* Seleccionar cuál trit actúa como ES vía contador determinista base-3 */
+    int es_idx = counter_select_es_position();
 
     Trit es_val = d->t[es_idx];
     
@@ -1263,12 +1274,59 @@ static int process_cluster_level(const Vector* tensors, int count, VectorRole ro
     return produced;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+ * ESPECIFICACIÓN OPERACIONAL — WRAPPERS NOMINADOS (antes de MR)
+ * Selector, Analizador de Error, Lógica Combinacional, Reproductor
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* Selector: ventana deslizante (W = T[i],T[i+1],T[i+2]) */
+static int selector(const Vector* cluster, int count, int start_idx, Vector window_out[3]) {
+    if (start_idx < 0 || start_idx + 2 >= count) return 0;
+    window_out[0] = cluster[start_idx];
+    window_out[1] = cluster[start_idx + 1];
+    window_out[2] = cluster[start_idx + 2];
+    return 1;
+}
+
+/* Analizador de Error: detecta dimensión {c,u,n} explícita */
+static int analizador_error(const Dimension* d) {
+    return (d->t[0] == TRIT_C && d->t[1] == TRIT_U && d->t[2] == TRIT_N);
+}
+
 /* Forward declarations de MR y ensamblado para evitar implícitos */
 static void mr_partial_append(const Vector* te, const Vector* tk);
 static int mr_collect_three_for_te(const Vector* te, Vector tk_out[3]);
 static void assemble_command_from_emergents(const Vector* te1, const Vector* te2, const Vector* te3, Dimension* tc_out);
 static void compose_tk_aplicado(const Vector* tk1, const Vector* tk2, const Vector* tk3, Vector* tk_out);
 static void mr_commit_final(const Vector* te_key, const Vector* tk_aplicado, const Dimension* tc);
+
+/* Forward: decode_command para logica_combinacional */
+static CommandDecoded decode_command(const Dimension* comando);
+
+/* Lógica Combinacional: decodificar y propagar comando a modos */
+typedef struct {
+    CommandDecoded decoded;
+} PropagacionModo;
+
+static PropagacionModo logica_combinacional(const Dimension* comando) {
+    PropagacionModo p;
+    p.decoded = decode_command(comando);
+    return p;
+}
+
+/* Reproductor: traducir vector emergente a "tokens" (stub reversible) */
+typedef struct {
+    Trit token_trits[9];
+} TokenSalida;
+
+static void reproductor(const Vector* emergente, TokenSalida* out) {
+    int k = 0;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            out->token_trits[k++] = emergente->d[i].t[j];
+        }
+    }
+}
 
 /* Pipeline fractal ascendente hasta converger o quedar <3 tensores */
 static void cluster_pipeline(Vector* tensors, int count) {
