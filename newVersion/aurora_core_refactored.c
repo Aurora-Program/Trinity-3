@@ -3,11 +3,11 @@
  * 
  * Implementación completa siguiendo Technical Annex:
  * 1. FFE Tensor con roles trinarios (Informational, Cognitive, Energetic)
- * 2. Emergencia reversible con memorias (me1, me2, me3)
+ * 2. Emergencia + reconstrucción guiada con memorias (me1, me2, me3)
  * 3. Ciclo completo: Information → Knowledge → Energy → Information
  * 4. Energetic Trio explícito: Tensión, Comando, Energía
  * 5. Validación ES.index ≠ FO.index
- * 6. Fibonacci ternario para selección de roles
+ * 6. Selector ternario anti-resonancias (Fibonacci + LFSR)
  * 
  * Licencias: Apache 2.0 + CC BY 4.0
  */
@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 
 /* ═══════════════════════════════════════════════════════════════════════
  * GLOSARIO TÉCNICO FUNDAMENTAL (Technical Annex §1)
@@ -189,10 +190,24 @@ typedef struct {
     int fib_b;  /* Fibonacci actual */
 } FibCounter;
 
+/* LFSR ternario (usando mezcla xorshift + módulo) para romper períodos cortos */
+static uint32_t lfsr_state = 0xA5A5A5A5u;
+
+static uint32_t lfsr_step(void) {
+    /* Xorshift32 simple para obtener entropía ligera; seguro en entornos embebidos */
+    uint32_t x = lfsr_state;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    lfsr_state = (x == 0) ? 0x1u : x; /* evitar estado cero */
+    return lfsr_state;
+}
+
 static void fib_init(FibCounter* fc) {
     fc->state = 0;
     fc->fib_a = 1;
     fc->fib_b = 1;
+    lfsr_state ^= 0x9E3779B9u; /* desfasar semilla para este ciclo */
 }
 
 static void fib_next(FibCounter* fc) {
@@ -203,8 +218,10 @@ static void fib_next(FibCounter* fc) {
 }
 
 static int fib_select_role(FibCounter* fc) {
-    /* Retorna 0, 1, o 2 según Fibonacci ternario */
-    return (fc->fib_b % 3);
+    /* Selector ternario anti-resonancias: Fibonacci mezclado con LFSR */
+    uint32_t noise = lfsr_step();
+    uint32_t mixed = (uint32_t)(fc->fib_b + noise);
+    return (int)(mixed % 3u);
 }
 
 static FibCounter global_fib_counter = {0, 1, 1};
@@ -217,6 +234,11 @@ static FibCounter global_fib_counter = {0, 1, 1};
 static int validate_dimension(const Dimension* d) {
     /* Si está completamente nula, no es válida */
     if (d->t[0] == TRIT_N && d->t[1] == TRIT_N && d->t[2] == TRIT_N) {
+        return 0;
+    }
+
+    /* Error explícito: dimensión {c,u,n} (0,1,2) representa autoasignación inválida */
+    if (d->t[0] == TRIT_C && d->t[1] == TRIT_U && d->t[2] == TRIT_N) {
         return 0;
     }
 
@@ -300,6 +322,18 @@ static Relator relatores[MAX_MEM];
 static int n_relatores = 0;
 
 static unsigned long global_rev = 1;
+
+/* TensorMemory unificado: preserva correlación FO/FN/ES + memorias */
+typedef struct {
+    Dimension pattern;      /* patrón triádico consolidado de entrada */
+    Dimension result;       /* síntesis superior (ds) */
+    EmergencyMemory mem;    /* breadcrumbs de emergencia */
+    int support;
+    unsigned long rev;
+} TensorMemory;
+
+static TensorMemory tensor_mem[MAX_MEM];
+static int n_tensor_mem = 0;
 
 /* Tensor C: Punto de creencia estable (Technical Annex §10, Whitepaper §3.3.8) */
 static Dimension tensor_C = {{TRIT_N, TRIT_N, TRIT_N}};
@@ -631,6 +665,34 @@ static void learn_relator(const Trit a[3], const Trit b[3], const Trit m[3]) {
     n_relatores++;
 }
 
+/* Aprendizaje unificado de tensor completo (FO/FN/ES + mem) */
+static void learn_tensor_memory(const Dimension d[3], const Dimension* ds_out, const EmergencyMemory* mem_out) {
+    Dimension pattern;
+    for (int j = 0; j < 3; j++) {
+        pattern.t[j] = triadic_collapse(d[0].t[j], d[1].t[j], d[2].t[j]);
+    }
+
+    for (int i = 0; i < n_tensor_mem; i++) {
+        if (eq_dim(&tensor_mem[i].pattern, &pattern)) {
+            tensor_mem[i].support++;
+            tensor_mem[i].rev = global_rev++;
+            /* Fusionar resultados si difieren */
+            for (int k = 0; k < 3; k++) {
+                tensor_mem[i].result.t[k] = triadic_collapse(tensor_mem[i].result.t[k], ds_out->t[k], mem_out->me[k]);
+            }
+            return;
+        }
+    }
+
+    if (n_tensor_mem >= MAX_MEM) return;
+    tensor_mem[n_tensor_mem].pattern = pattern;
+    tensor_mem[n_tensor_mem].result = *ds_out;
+    tensor_mem[n_tensor_mem].mem = *mem_out;
+    tensor_mem[n_tensor_mem].support = 1;
+    tensor_mem[n_tensor_mem].rev = global_rev++;
+    n_tensor_mem++;
+}
+
 /* Actualizar Tensor C desde conocimiento acumulado A-R-D */
 static void update_tensor_C(void) {
     /* Convergencia triádica: Arquetipo + Relator + Dinámica → Creencia */
@@ -639,7 +701,7 @@ static void update_tensor_C(void) {
         Arquetipo* best_arq = &arquetipos[0];
         Dinamica* best_dyn = &dinamicas[0];
         Relator* best_rel = &relatores[0];
-        
+
         for (int i = 1; i < n_arquetipos; i++) {
             if (arquetipos[i].support > best_arq->support || 
                 (arquetipos[i].support == best_arq->support && arquetipos[i].rev > best_arq->rev)) {
@@ -658,11 +720,30 @@ static void update_tensor_C(void) {
                 best_rel = &relatores[i];
             }
         }
+
+        /* Mejor tensor unificado (si existe) */
+        TensorMemory* best_tm = NULL;
+        if (n_tensor_mem > 0) {
+            best_tm = &tensor_mem[0];
+            for (int i = 1; i < n_tensor_mem; i++) {
+                if (tensor_mem[i].support > best_tm->support ||
+                    (tensor_mem[i].support == best_tm->support && tensor_mem[i].rev > best_tm->rev)) {
+                    best_tm = &tensor_mem[i];
+                }
+            }
+        }
         
         /* Síntesis triádica en cada dimensión */
         tensor_C.t[0] = triadic_collapse(best_arq->fo_output, best_rel->mode[0], best_dyn->fn_output);
         tensor_C.t[1] = triadic_collapse(best_arq->pattern[1], best_rel->mode[1], best_dyn->fn_output);
         tensor_C.t[2] = triadic_collapse(best_arq->pattern[2], best_rel->mode[2], best_dyn->state_after[2]);
+
+        /* Refinar con memoria unificada para preservar correlaciones completas */
+        if (best_tm) {
+            for (int k = 0; k < 3; k++) {
+                tensor_C.t[k] = triadic_collapse(tensor_C.t[k], best_tm->pattern.t[k], best_tm->result.t[k]);
+            }
+        }
     }
 }
 
@@ -733,6 +814,9 @@ static void emergence_function(
     mem_out->me[0] = rFO[0];
     mem_out->me[1] = rFO[1];
     mem_out->me[2] = rFO[2];
+
+    /* Aprendizaje unificado preservando correlaciones completas */
+    learn_tensor_memory(d, ds_out, mem_out);
     
     /* Aprender según rol actual */
     if (current_role == ROLE_INFORMATIONAL) {
@@ -897,28 +981,34 @@ static void extensor(
     const Vector* conocimiento,
     DimensionesDestiladas* out
 ) {
-    /* Extender cada rol usando conocimiento almacenado */
+    /* Extender cada rol usando conocimiento almacenado con rotación de roles */
     Dimension temp_out[3];
     EmergencyMemory mem;
 
-    /* Reconstruir FO destilada */
-    mem.me[0] = conocimiento->d[0].t[0];
-    mem.me[1] = conocimiento->d[0].t[1];
-    mem.me[2] = conocimiento->d[0].t[2];
+    /* Rotación de roles: permitir que FO→FN, FN→ES, ES→FO según contador */
+    int role_rotation = fib_select_role(&global_fib_counter) % 3;
+    
+    /* Reconstruir FO destilada (puede rotar desde conocimiento FN) */
+    int fo_src = role_rotation;
+    mem.me[0] = conocimiento->d[fo_src].t[0];
+    mem.me[1] = conocimiento->d[fo_src].t[1];
+    mem.me[2] = conocimiento->d[fo_src].t[2];
     extend_function(ds, &mem, temp_out);
     out->fo_destilada = temp_out[0];
 
-    /* Reconstruir FN destilada */
-    mem.me[0] = conocimiento->d[1].t[0];
-    mem.me[1] = conocimiento->d[1].t[1];
-    mem.me[2] = conocimiento->d[1].t[2];
+    /* Reconstruir FN destilada (puede rotar desde conocimiento ES) */
+    int fn_src = (fo_src + 1) % 3;
+    mem.me[0] = conocimiento->d[fn_src].t[0];
+    mem.me[1] = conocimiento->d[fn_src].t[1];
+    mem.me[2] = conocimiento->d[fn_src].t[2];
     extend_function(ds, &mem, temp_out);
     out->fn_destilada = temp_out[1];
 
-    /* Reconstruir ES destilada */
-    mem.me[0] = conocimiento->d[2].t[0];
-    mem.me[1] = conocimiento->d[2].t[1];
-    mem.me[2] = conocimiento->d[2].t[2];
+    /* Reconstruir ES destilada (puede rotar desde conocimiento FO) */
+    int es_src = (fn_src + 1) % 3;
+    mem.me[0] = conocimiento->d[es_src].t[0];
+    mem.me[1] = conocimiento->d[es_src].t[1];
+    mem.me[2] = conocimiento->d[es_src].t[2];
     extend_function(ds, &mem, temp_out);
     out->es_destilada = temp_out[2];
 }
@@ -929,32 +1019,67 @@ static void extensor(
  * Usa pares de Trigates para resolver coherencia vs creatividad
  * ═══════════════════════════════════════════════════════════════════════ */
 
+static float score_candidate(
+    Trit a,
+    Trit b,
+    Trit r_crea,
+    Trit r2,
+    Trit es_hint
+) {
+    float score = 0.0f;
+    if (a != TRIT_N) score += 0.35f;
+    if (b != TRIT_N) score += 0.35f;
+    if (r_crea != TRIT_N) score += 0.15f;
+    if (r2 != TRIT_N && r_crea == r2) score += 0.35f; /* refuerza coincidencia con conocimiento */
+    if (es_hint != TRIT_N && trit_consensus(r_crea, es_hint) != TRIT_N) score += 0.1f;
+    return score;
+}
+
 static void compositor(
     const DimensionesDestiladas* destiladas,
     const Vector* conocimiento,
     Dimension d_out[3]
 ) {
     for (int i = 0; i < 3; i++) {
-        /* Trigate 1: resolver coherencia
-           R = FO destilada[i]
-           M = FN conocimiento[i] */
+        /* Trigate 1: coherencia (r1,m1). Trigate 2: creatividad (r2,m2). */
         Trit r1 = destiladas->fo_destilada.t[i];
         Trit m1 = conocimiento->d[i].t[1];
-
-        /* Trigate 2: resolver creatividad
-           R = FO conocimiento[i]
-           M = FN destilada[i] */
         Trit r2 = conocimiento->d[i].t[0];
         Trit m2 = destiladas->fn_destilada.t[i];
 
-        /* Buscar A y B que satisfagan ambos trigates
-           Simplificación: usar deducción desde r1 */
-        Trit b_coherencia = trit_deduce_b(TRIT_U, m1, r1);
-        Trit a_compartido = (b_coherencia != TRIT_N) ? b_coherencia : TRIT_N;
+        Trit best_a = r1;
+        Trit best_b = TRIT_C;
+        float best_score = -1.0f;
+        Trit options[3] = {TRIT_C, TRIT_U, TRIT_N};
 
-        d_out[i].t[0] = (a_compartido != TRIT_N) ? a_compartido : r1;
+        for (int ia = 0; ia < 3; ia++) {
+            for (int ib = 0; ib < 3; ib++) {
+                Trit a = options[ia];
+                Trit b = options[ib];
+                Trit r_coh = trit_infer(a, b, m1);
+                if (r_coh != r1) continue; /* no satisface coherencia */
+                Trit r_crea = trit_infer(a, b, m2);
+                if (r2 != TRIT_N && r_crea != r2) continue; /* violación de creatividad */
+                float sc = score_candidate(a, b, r_crea, r2, destiladas->es_destilada.t[i]);
+                if (sc > best_score) {
+                    best_score = sc;
+                    best_a = a;
+                    best_b = b;
+                }
+            }
+        }
+
+        /* Fallback a heurística previa si no hubo candidato completo */
+        if (best_score < 0.0f) {
+            Trit b_coherencia = trit_deduce_b(TRIT_U, m1, r1);
+            best_a = (b_coherencia != TRIT_N) ? b_coherencia : r1;
+            best_b = (best_a == r1) ? TRIT_C : b_coherencia;
+        }
+
+        d_out[i].t[0] = best_a;
         d_out[i].t[1] = m2;
         d_out[i].t[2] = destiladas->es_destilada.t[i];
+        (void)best_b; /* reservado para futuros usos creativos */
     }
 }
 
@@ -967,56 +1092,127 @@ typedef struct {
     Vector tensor_emergente;   /* Salida del Transcender */
     Vector conocimiento;       /* Conocimiento generado */
     Dimension comando;         /* Comandos de operación */
+    Vector te1_sintesis;       /* Emergente de síntesis (nivel 1) */
 } TranscenderOutput;
+
+/* Adelanto: armonizador se define más abajo */
+static int armonizador(Dimension* d, const Arquetipo* arq, const Dinamica* dyn, const Relator* rel);
+
+/* Mapeo de la dimensión comando → política operativa */
+typedef enum { CMD_MEM_APRENDER, CMD_MEM_COMPRENDER, CMD_MEM_ENTENDER } CommandMem;
+typedef enum { CMD_FLOW_ACEPTAR, CMD_FLOW_REINTENTAR, CMD_FLOW_DESISTIR } CommandFlow;
+typedef enum { CMD_MODE_INFERIR, CMD_MODE_DEDUCIR, CMD_MODE_APRENDER } CommandMode;
+
+typedef struct {
+    CommandMem mem_sel;   /* ES: Aprender / Comprender / Entender */
+    CommandFlow flow;     /* FO: Aceptar / Reintentar / Desistir */
+    CommandMode mode;     /* FN: Inferir / Deducir / Aprender */
+} CommandDecoded;
+
+static CommandDecoded decode_command(const Dimension* comando) {
+    CommandDecoded c;
+    /* ES → qué emergencia memorizar */
+    c.mem_sel = (comando->t[2] == TRIT_U) ? CMD_MEM_COMPRENDER :
+                (comando->t[2] == TRIT_N) ? CMD_MEM_ENTENDER : CMD_MEM_APRENDER;
+    /* FO → control de flujo */
+    c.flow = (comando->t[0] == TRIT_U) ? CMD_FLOW_REINTENTAR :
+             (comando->t[0] == TRIT_N) ? CMD_FLOW_DESISTIR : CMD_FLOW_ACEPTAR;
+    /* FN → modo lógico global */
+    c.mode = (comando->t[1] == TRIT_U) ? CMD_MODE_DEDUCIR :
+             (comando->t[1] == TRIT_N) ? CMD_MODE_APRENDER : CMD_MODE_INFERIR;
+    return c;
+}
+
+static void null_vector(Vector* v) {
+    for (int i = 0; i < 3; i++) {
+        v->d[i].t[0] = v->d[i].t[1] = v->d[i].t[2] = TRIT_N;
+    }
+}
+
+static void apply_mode_learning(CommandMode mode, const ResultadoEmergencia* emerg_sel) {
+    if (mode == CMD_MODE_APRENDER) {
+        learn_arquetipo(emerg_sel->conocimiento.d[0].t, emerg_sel->ds.t[0]);
+        learn_relator(emerg_sel->conocimiento.d[1].t, emerg_sel->conocimiento.d[0].t, emerg_sel->conocimiento.d[2].t);
+    } else if (mode == CMD_MODE_DEDUCIR) {
+        Dimension d_tmp = emerg_sel->ds;
+        armonizador(&d_tmp,
+                    n_arquetipos ? &arquetipos[0] : NULL,
+                    n_dinamicas ? &dinamicas[0] : NULL,
+                    n_relatores ? &relatores[0] : NULL);
+    }
+}
 
 static void transcender(
     const Vector ventana[3],  /* T1, T2, T3 */
     TranscenderOutput* out
 ) {
-    /* Fase 1: Destilador - procesar combinaciones transversales */
-    DimensionesDestiladas dest[3];
-    for (int i = 0; i < 3; i++) {
-        Dimension combo[3];
-        combo[0] = ventana[0].d[i];
-        combo[1] = ventana[1].d[i];
-        combo[2] = ventana[2].d[i];
-        destilador(combo, &dest[i]);
-    }
+    int attempts = 0;
+    while (attempts < 2) {
+        /* Fase 1: Destilador - procesar combinaciones transversales */
+        DimensionesDestiladas dest[3];
+        for (int i = 0; i < 3; i++) {
+            Dimension combo[3];
+            combo[0] = ventana[0].d[i];
+            combo[1] = ventana[1].d[i];
+            combo[2] = ventana[2].d[i];
+            destilador(combo, &dest[i]);
+        }
 
-    /* Fase 2: Ciclo Emergente - sintetizar */
-    ResultadoEmergencia emerg[3];
-    for (int i = 0; i < 3; i++) {
-        ciclo_emergente(&dest[i], &emerg[i]);
-    }
+        /* Fase 2: Ciclo Emergente - sintetizar */
+        ResultadoEmergencia emerg[3];
+        for (int i = 0; i < 3; i++) {
+            ciclo_emergente(&dest[i], &emerg[i]);
+        }
 
-    /* Formar vector emergente */
-    out->tensor_emergente.d[0] = emerg[0].ds;
-    out->tensor_emergente.d[1] = emerg[1].ds;
-    out->tensor_emergente.d[2] = emerg[2].ds;
+        /* Formar vector emergente inicial y guardar Te1 (síntesis nivel 1) */
+        out->tensor_emergente.d[0] = emerg[0].ds;
+        out->tensor_emergente.d[1] = emerg[1].ds;
+        out->tensor_emergente.d[2] = emerg[2].ds;
+        out->te1_sintesis = out->tensor_emergente;
 
-    /* Unificar conocimiento */
-    out->conocimiento = emerg[0].conocimiento;
+        /* Emergencia final para comando */
+        Dimension temp_cmd[3];
+        temp_cmd[0] = emerg[0].ds;
+        temp_cmd[1] = emerg[1].ds;
+        temp_cmd[2] = emerg[2].ds;
+        EmergencyMemory mem_cmd;
+        emergence_function(temp_cmd, &out->comando, &mem_cmd, ROLE_COGNITIVE);
 
-    /* Emergencia final para comando */
-    Dimension temp_cmd[3];
-    temp_cmd[0] = emerg[0].ds;
-    temp_cmd[1] = emerg[1].ds;
-    temp_cmd[2] = emerg[2].ds;
-    EmergencyMemory mem_cmd;
-    emergence_function(temp_cmd, &out->comando, &mem_cmd, ROLE_COGNITIVE);
+        CommandDecoded cmd = decode_command(&out->comando);
+        int mem_idx = (cmd.mem_sel == CMD_MEM_COMPRENDER) ? 1 : (cmd.mem_sel == CMD_MEM_ENTENDER ? 2 : 0);
 
-    /* Fase 3: Extensor - reconstruir si es necesario */
-    DimensionesDestiladas dest_rec[3];
-    for (int i = 0; i < 3; i++) {
-        extensor(&emerg[i].ds, &emerg[i].conocimiento, &dest_rec[i]);
-    }
+        /* Seleccionar conocimiento a memorizar */
+        out->conocimiento = emerg[mem_idx].conocimiento;
 
-    /* Fase 4: Compositor - ensamblar salida final */
-    Dimension dims_out[3];
-    for (int i = 0; i < 3; i++) {
-        compositor(&dest_rec[i], &emerg[i].conocimiento, dims_out);
-        /* Actualizar tensor emergente con composición */
-        out->tensor_emergente.d[i] = dims_out[i];
+        /* Fase 3: Extensor - reconstruir según conocimiento elegido */
+        DimensionesDestiladas dest_rec[3];
+        for (int i = 0; i < 3; i++) {
+            extensor(&emerg[i].ds, &emerg[mem_idx].conocimiento, &dest_rec[i]);
+        }
+
+        /* Fase 4: Compositor - ensamblar salida final */
+        Dimension dims_out[3];
+        for (int i = 0; i < 3; i++) {
+            compositor(&dest_rec[i], &emerg[mem_idx].conocimiento, dims_out);
+            out->tensor_emergente.d[i] = dims_out[i];
+        }
+
+        /* Aplicar modo (inferir/deducir/aprender) sobre la emergencia seleccionada */
+        apply_mode_learning(cmd.mode, &emerg[mem_idx]);
+
+        /* Control de flujo: aceptar / reintentar / desistir */
+        if (cmd.flow == CMD_FLOW_DESISTIR) {
+            fib_init(&global_fib_counter);
+            null_vector(&out->tensor_emergente);
+            null_vector(&out->conocimiento);
+            return;
+        }
+        if (cmd.flow == CMD_FLOW_REINTENTAR) {
+            fib_next(&global_fib_counter);
+            attempts++;
+            continue; /* re-procesar ventana con nueva rotación */
+        }
+        break; /* Aceptado */
     }
 }
 
@@ -1067,6 +1263,13 @@ static int process_cluster_level(const Vector* tensors, int count, VectorRole ro
     return produced;
 }
 
+/* Forward declarations de MR y ensamblado para evitar implícitos */
+static void mr_partial_append(const Vector* te, const Vector* tk);
+static int mr_collect_three_for_te(const Vector* te, Vector tk_out[3]);
+static void assemble_command_from_emergents(const Vector* te1, const Vector* te2, const Vector* te3, Dimension* tc_out);
+static void compose_tk_aplicado(const Vector* tk1, const Vector* tk2, const Vector* tk3, Vector* tk_out);
+static void mr_commit_final(const Vector* te_key, const Vector* tk_aplicado, const Dimension* tc);
+
 /* Pipeline fractal ascendente hasta converger o quedar <3 tensores */
 static void cluster_pipeline(Vector* tensors, int count) {
     if (count < 3) {
@@ -1077,23 +1280,86 @@ static void cluster_pipeline(Vector* tensors, int count) {
     printf("\n━━━ PIPELINE DE CLUSTER TENSORIAL (TRANSCENDER) ━━━\n");
     printf("  Ventanas procesadas:\n");
 
-    /* Procesar ventanas deslizantes */
+    /* Procesar ventanas deslizantes (máx 5 para demo) */
     for (int i = 0; i + 2 < count && i < 5; i++) {
         Vector ventana[3];
         ventana[0] = tensors[i];
         ventana[1] = tensors[i+1];
         ventana[2] = tensors[i+2];
 
+        /* Nivel 1: Transcender sobre la ventana de datos */
         TranscenderOutput out;
         transcender(ventana, &out);
+        CommandDecoded cmd = decode_command(&out.comando);
+
+        /* MR Parcial Nivel 1: Te1 → Tk1 (Síntesis/Memorización) */
+        mr_partial_append(&out.te1_sintesis, &out.conocimiento);
+
+        /* Intentar emergencia multinivel siguiendo la especificación */
+        Vector tk1_triplet[3];
+        Vector te2, te3;
+        Dimension tc_final = {{TRIT_N, TRIT_N, TRIT_N}};
+        Vector tk_aplicado;
+        null_vector(&tk_aplicado);
+        int nivel_alcanzado = 1;
+        
+        /* Nivel 2 — Razonamiento sobre memoria: si hay 3 Tk1 para Te1 */
+        if (mr_collect_three_for_te(&out.te1_sintesis, tk1_triplet) == 3) {
+            /* Autosimilar: ventana de conocimiento (Tk1a, Tk1b, Tk1c) */
+            TranscenderOutput out2;
+            Vector ventana2[3] = { tk1_triplet[0], tk1_triplet[1], tk1_triplet[2] };
+            transcender(ventana2, &out2);
+            
+            /* Solo guardar si emergió válido */
+            if (validate_vector(&out2.te1_sintesis)) {
+                mr_partial_append(&out2.te1_sintesis, &out2.conocimiento);
+                te2 = out2.te1_sintesis;
+                nivel_alcanzado = 2;
+
+                /* Nivel 3 — Energía: si hay 3 Tk2 para Te2 */
+                Vector tk2_triplet[3];
+                if (mr_collect_three_for_te(&out2.te1_sintesis, tk2_triplet) == 3) {
+                    TranscenderOutput out3;
+                    Vector ventana3[3] = { tk2_triplet[0], tk2_triplet[1], tk2_triplet[2] };
+                    transcender(ventana3, &out3);
+                    
+                    if (validate_vector(&out3.te1_sintesis)) {
+                        te3 = out3.te1_sintesis;
+                        nivel_alcanzado = 3;
+
+                        /* SOLO aquí se forma el comando Tc (cuando los 3 niveles emergen) */
+                        assemble_command_from_emergents(&out.te1_sintesis, &te2, &te3, &tc_final);
+                        compose_tk_aplicado(&out.conocimiento, &out2.conocimiento, &out3.conocimiento, &tk_aplicado);
+                        mr_commit_final(&out.te1_sintesis, &tk_aplicado, &tc_final);
+                    }
+                }
+            }
+        }
 
         printf("\n  Ventana [%d,%d,%d]:\n", i, i+1, i+2);
         printf("    Emergente: [%s,%s,%s] [%s,%s,%s] [%s,%s,%s]\n",
                ts(out.tensor_emergente.d[0].t[0]), ts(out.tensor_emergente.d[0].t[1]), ts(out.tensor_emergente.d[0].t[2]),
                ts(out.tensor_emergente.d[1].t[0]), ts(out.tensor_emergente.d[1].t[1]), ts(out.tensor_emergente.d[1].t[2]),
                ts(out.tensor_emergente.d[2].t[0]), ts(out.tensor_emergente.d[2].t[1]), ts(out.tensor_emergente.d[2].t[2]));
-        printf("    Comando:   [%s,%s,%s]\n",
+        printf("    Comando L1:[%s,%s,%s]\n",
                ts(out.comando.t[0]), ts(out.comando.t[1]), ts(out.comando.t[2]));
+        printf("      → Flow:%s  Mem:%s  Mode:%s\n",
+             (cmd.flow == CMD_FLOW_ACEPTAR ? "aceptar" : cmd.flow == CMD_FLOW_REINTENTAR ? "reintentar" : "desistir"),
+             (cmd.mem_sel == CMD_MEM_APRENDER ? "aprender" : cmd.mem_sel == CMD_MEM_COMPRENDER ? "comprender" : "entender"),
+             (cmd.mode == CMD_MODE_INFERIR ? "inferir" : cmd.mode == CMD_MODE_DEDUCIR ? "deducir" : "aprender"));
+        printf("    Nivel alcanzado: %d\n", nivel_alcanzado);
+
+        /* Tc(final) solo existe cuando se completaron los 3 niveles */
+        if (nivel_alcanzado == 3 && (tc_final.t[0] != TRIT_N || tc_final.t[1] != TRIT_N || tc_final.t[2] != TRIT_N)) {
+            CommandDecoded cmd2 = decode_command(&tc_final);
+            printf("    Tc(FINAL): [%s,%s,%s] ← Comando consolidado (3 niveles)\n", 
+                   ts(tc_final.t[0]), ts(tc_final.t[1]), ts(tc_final.t[2]));
+            printf("      → Flow:%s  Mem:%s  Mode:%s\n",
+                   (cmd2.flow == CMD_FLOW_ACEPTAR ? "aceptar" : cmd2.flow == CMD_FLOW_REINTENTAR ? "reintentar" : "desistir"),
+                   (cmd2.mem_sel == CMD_MEM_APRENDER ? "aprender" : cmd2.mem_sel == CMD_MEM_COMPRENDER ? "comprender" : "entender"),
+                   (cmd2.mode == CMD_MODE_INFERIR ? "inferir" : cmd2.mode == CMD_MODE_DEDUCIR ? "deducir" : "aprender"));
+            printf("    → MR guardado: Te1 → (Tk_aplicado, Tc)\n");
+        }
     }
 
     printf("\n── Procesamiento completado.\n");
@@ -1194,6 +1460,91 @@ static int armonizador(Dimension* d, const Arquetipo* arq, const Dinamica* dyn, 
     }
     
     return cambios;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * MEMORIA REGISTRADA (MR) — Tripletas Te→(Tk,Tc)
+ * Parcial multinivel y commit final autosimilar (ventanas + Fibonacci)
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+typedef struct {
+    Vector key_te;   /* Emergente clave (situación) */
+    Vector tk;       /* Conocimiento asociado */
+    Dimension tc;    /* Comando final (si aplica) */
+} MRRecord;
+
+#define MAX_MR 256
+static MRRecord mr_partial[MAX_MR];
+static int mr_partial_count = 0;
+static MRRecord mr_final[MAX_MR];
+static int mr_final_count = 0;
+
+static int eq_vector(const Vector* a, const Vector* b) {
+    for (int i = 0; i < 3; i++) {
+        if (!eq_dim(&a->d[i], &b->d[i])) return 0;
+    }
+    return 1;
+}
+
+static void mr_partial_append(const Vector* te, const Vector* tk) {
+    if (mr_partial_count >= MAX_MR) return;
+    mr_partial[mr_partial_count].key_te = *te;
+    mr_partial[mr_partial_count].tk = *tk;
+    mr_partial[mr_partial_count].tc.t[0] = mr_partial[mr_partial_count].tc.t[1] = mr_partial[mr_partial_count].tc.t[2] = TRIT_N;
+    mr_partial_count++;
+}
+
+/* Recoger tres Tk asociados a la misma Te usando ventana deslizante + Fibonacci */
+static int mr_collect_three_for_te(const Vector* te, Vector tk_out[3]) {
+    /* Primero, encontrar todos los índices que coinciden */
+    int matches[MAX_MR];
+    int match_count = 0;
+    for (int i = 0; i < mr_partial_count && match_count < MAX_MR; i++) {
+        if (eq_vector(&mr_partial[i].key_te, te)) {
+            matches[match_count++] = i;
+        }
+    }
+    
+    if (match_count < 3) return match_count;
+    
+    /* Seleccionar ventana de 3 usando posición Fibonacci */
+    int fib_offset = fib_select_role(&global_fib_counter) % (match_count - 2);
+    if (match_count >= 3) {
+        tk_out[0] = mr_partial[matches[fib_offset]].tk;
+        tk_out[1] = mr_partial[matches[fib_offset + 1]].tk;
+        tk_out[2] = mr_partial[matches[fib_offset + 2]].tk;
+        return 3;
+    }
+    return 0;
+}
+
+static void assemble_command_from_emergents(const Vector* te1, const Vector* te2, const Vector* te3, Dimension* tc_out) {
+    /* Ensamblar Tc por colapso triádico en cada trit de la dimensión comando */
+    for (int i = 0; i < 3; i++) {
+        Trit a0 = te1->d[i].t[0], b0 = te2->d[i].t[0], c0 = te3->d[i].t[0];
+        Trit a1 = te1->d[i].t[1], b1 = te2->d[i].t[1], c1 = te3->d[i].t[1];
+        Trit a2 = te1->d[i].t[2], b2 = te2->d[i].t[2], c2 = te3->d[i].t[2];
+        tc_out->t[0] = triadic_collapse(a0, b0, c0);
+        tc_out->t[1] = triadic_collapse(a1, b1, c1);
+        tc_out->t[2] = triadic_collapse(a2, b2, c2);
+    }
+}
+
+static void mr_commit_final(const Vector* te_key, const Vector* tk_aplicado, const Dimension* tc) {
+    if (mr_final_count >= MAX_MR) return;
+    mr_final[mr_final_count].key_te = *te_key;
+    mr_final[mr_final_count].tk = *tk_aplicado;
+    mr_final[mr_final_count].tc = *tc;
+    mr_final_count++;
+}
+
+/* Componer conocimiento aplicado a partir de Tk1+Tk2+Tk3 (colapso triádico) */
+static void compose_tk_aplicado(const Vector* tk1, const Vector* tk2, const Vector* tk3, Vector* tk_out) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            tk_out->d[i].t[j] = triadic_collapse(tk1->d[i].t[j], tk2->d[i].t[j], tk3->d[i].t[j]);
+        }
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1358,11 +1709,15 @@ static void save_knowledge(const char* filename) {
     fwrite(&n_dinamicas, sizeof(int), 1, f);
     fwrite(&n_relatores, sizeof(int), 1, f);
     fwrite(&global_rev, sizeof(unsigned long), 1, f);
+    fwrite(&n_tensor_mem, sizeof(int), 1, f);
     
     /* Guardar tres pirámides */
     fwrite(arquetipos, sizeof(Arquetipo), n_arquetipos, f);
     fwrite(dinamicas, sizeof(Dinamica), n_dinamicas, f);
     fwrite(relatores, sizeof(Relator), n_relatores, f);
+
+    /* Guardar memoria unificada */
+    fwrite(tensor_mem, sizeof(TensorMemory), n_tensor_mem, f);
     
     /* Guardar tensor C */
     fwrite(&tensor_C, sizeof(Dimension), 1, f);
@@ -1376,8 +1731,8 @@ static void save_knowledge(const char* filename) {
     
     fclose(f);
     printf("✓ Conocimiento guardado en '%s'\n", filename);
-    printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n",
-           n_arquetipos, n_dinamicas, n_relatores);
+        printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n  • TensorMem: %d\n",
+            n_arquetipos, n_dinamicas, n_relatores, n_tensor_mem);
 }
 
 static void load_knowledge(const char* filename) {
@@ -1392,9 +1747,12 @@ static void load_knowledge(const char* filename) {
     fread(&n_dinamicas, sizeof(int), 1, f);
     fread(&n_relatores, sizeof(int), 1, f);
     fread(&global_rev, sizeof(unsigned long), 1, f);
+    if (fread(&n_tensor_mem, sizeof(int), 1, f) != 1) {
+        n_tensor_mem = 0; /* compatibilidad con archivos antiguos */
+    }
     
     /* Validar límites */
-    if (n_arquetipos > MAX_MEM || n_dinamicas > MAX_MEM || n_relatores > MAX_MEM) {
+    if (n_arquetipos > MAX_MEM || n_dinamicas > MAX_MEM || n_relatores > MAX_MEM || n_tensor_mem > MAX_MEM) {
         printf("❌ Error: Archivo de conocimiento corrupto\n");
         fclose(f);
         return;
@@ -1404,6 +1762,7 @@ static void load_knowledge(const char* filename) {
     fread(arquetipos, sizeof(Arquetipo), n_arquetipos, f);
     fread(dinamicas, sizeof(Dinamica), n_dinamicas, f);
     fread(relatores, sizeof(Relator), n_relatores, f);
+    fread(tensor_mem, sizeof(TensorMemory), n_tensor_mem, f);
     
     /* Recuperar tensor C */
     fread(&tensor_C, sizeof(Dimension), 1, f);
@@ -1420,8 +1779,8 @@ static void load_knowledge(const char* filename) {
     
     fclose(f);
     printf("✓ Conocimiento restaurado desde '%s'\n", filename);
-    printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n",
-           n_arquetipos, n_dinamicas, n_relatores);
+        printf("  • Arquetipos: %d\n  • Dinámicas: %d\n  • Relatores: %d\n  • TensorMem: %d\n",
+            n_arquetipos, n_dinamicas, n_relatores, n_tensor_mem);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1574,6 +1933,7 @@ static void interactive_aurora_loop(void) {
             printf("    • Arquetipos: %d\n", n_arquetipos);
             printf("    • Dinámicas: %d\n", n_dinamicas);
             printf("    • Relatores: %d\n", n_relatores);
+            printf("    • TensorMem: %d\n", n_tensor_mem);
             printf("    • Revisión global: %lu\n\n", global_rev);
             
             printf("  Tensor C (Creencia Estable):\n");
@@ -1663,7 +2023,7 @@ static void test_emergence_roundtrip(void) {
 int main(int argc, char* argv[]) {
     printf("╔═══════════════════════════════════════════════════════════════════╗\n");
     printf("║  Aurora Core v3.0 - Technical Annex Implementation              ║\n");
-    printf("║  • Reversible Emergency Memories (me1, me2, me3)                 ║\n");
+    printf("║  • Reconstruction-Guided Emergency Memories (me1, me2, me3)      ║\n");
     printf("║  • Energetic Trio: Tensión, Comando, Energía                    ║\n");
     printf("║  • Complete Cycle: Info → Knowledge → Energy → Info             ║\n");
     printf("║  • ES.index ≠ FO.index validation                               ║\n");
@@ -1783,7 +2143,7 @@ int main(int argc, char* argv[]) {
     printf("\n╔═══════════════════════════════════════════════════════════════════╗\n");
     printf("║  CONCLUSIÓN                                                       ║\n");
     printf("╠═══════════════════════════════════════════════════════════════════╣\n");
-    printf("║  ✓ Emergencia reversible implementada                            ║\n");
+    printf("║  ✓ Emergencia + reconstrucción guiada implementadas              ║\n");
     printf("║  ✓ Estado Energético: Tensión/Entropía/Armonía                   ║\n");
     printf("║  ✓ Ciclo completo: Info→Knowledge→Energy→Info                    ║\n");
     printf("║  ✓ Validación ES.index ≠ FO.index                                ║\n");
