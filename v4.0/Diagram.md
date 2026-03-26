@@ -1,8 +1,5 @@
 
-```mermaid
-
 classDiagram
-
 class TritValor {
   <<enumeration>>
   CERO
@@ -24,6 +21,10 @@ class Estado {
   INCOHERENTE
 }
 
+class TritDominio {
+  +allowed : bitset<3>
+}
+
 class Operaciones {
   <<enumeration>>
   Or3
@@ -32,137 +33,109 @@ class Operaciones {
 }
 
 class Trit {
-  +TritValor dato
-  +Rol rol
+  -dominio : TritDominio
+  +ApplyEvent(const TritEvento& e) void
+  +GetDato() optional<TritValor>
+  +GetDominio() TritDominio
+  +GetEstado() Estado
+}
+
+class TritConRol {
+  -rol : Rol
+  -trit : Trit*
+  +GetRol() Rol
+  +GetTrit() Trit*
 }
 
 class Dimension {
-  +Trit[3] valores
-  +Trit ordenador
-  +Rol rol
-  +Dimension()
-  +validar()
-  +reordenar()
+  -trits : TritConRol[3]
+  -ordenador : TritValor
+  +ApplyEvent(const DimensionEvento& e) void
+  +GetTritsConRol() TritConRol[3]
+  +Valido() bool
+  +Reordenar() void
 }
 
 class Reloj {
-  +Avanzar()
+  +Avanzar() void
 }
 
-Dimension <|-- Reloj
+Reloj --|> Dimension
+
+class DimensionConRol {
+  -dimension : Dimension*
+  -rol : Rol
+  +GetRol() Rol
+  +GetDimension() Dimension*
+}
 
 class Vector {
-  +Dimension[3] dimensiones
-  +TritValor ordenador
-}
-
-class Semilla {
-  +Dimension N1
-  +Vector N2
-  +Reloj contador <<readOnly>>
-}
-
-class Tensor {
-  +Dimension N1
-  +Vector N2
-  +Vector[3] N3
-  +ObtenerSemilla()
-  +ObtenerInferiores()
-}
-
-class Ventana {
-  +Tensor[3] tensores
-  +Estado E
-  +Tensor salida
-  +Cargar()
-  +Resolver()
-}
-
-class Cluster {
-  +Tensor[*] tensores
-  +Ventana ventanaActual
-  +int longitud
-}
-
-class PiramideTensorial {
-  +Cluster[*] ciclos
-  +int cicloActivo
+  -dimensiones : DimensionConRol[3]
+  -reloj : Reloj
+  +GetDimensiones() DimensionConRol&[3]
+  +ApplyEvent(const VectorEvento& e) void
 }
 
 class Trigate {
-  +TritValor A
-  +TritValor B
-  +Operaciones M
-  +TritValor R
-  +TritValor C
-  +Estado E
-  +Cargar()
-  +Resolver()
+    -A : Trit*   # Entrada A
+    -B : Trit*   # Entrada B
+    -R : Trit*   # Resultado
+    -M : Trit*   # Modo lógico
+    -C : Trit*   # Modo operativo
+    -E : Trit*   # Estado operativo
+    +Cargar() void
+    +ApplyEvent(TrigateEvent& e) void
+    +Resolver() void
 }
 
-class PairTrigate {
-  +Trigate funcion
-  +Trigate forma
-  +TritValor C
-  +Estado E
-  +Cargar()
-  +Resolver()
+class TrigatePair {
+    -form : Trigate
+    -function : Trigate
+    -E : Trit*
+    -C : Trit*
+    +Cargar() void
+    +ApplyEvent(TrigatePairEvent& e) void
+    +Resolver() void
 }
 
 class Destilador {
-  +PairTrigate[3] pairs
-  +Dimension[3] domDestiladas
-  +Estado E
-  +TritValor C
-  +Cargar()
-  +Resolver()
+    -vectorInferior : Vector*
+    -pares : TrigatePair[3]
+    -E : Trit*
+    -C : Trit*
+    -dimensionesDestiladas : Dimension*[3]
+    +ApplyEvent(DestiladorEvent& e) void
+    +Resolver() void
 }
 
 class FuncionEmergencia {
-  +Dimension dimSuperior
-  +TritValor modo
-  +Estado E
-  +Rol tipo
-  +Trit emergencia
-  +Trit S
-  +Cargar()
-  +Resolver()
+    -dimensionDestilada : Dimension*
+    -rol : Rol
+    -S : Trit* #selector logico
+    -emergente : Trit* #Resultado de emeregencia
+    +ApplyEvent(FuncionEmergenciaEvent& e) void
+    +Resolver() void
+    -C: TritValor*
 }
 
 class Cara {
-  +Semilla semilla
-  +Destilador destilador
-  +FuncionEmergencia[3] emergencias
-  +TritValor C
-  +Dimension S <<readOnly>>
-  +Resolver()
-}
-
-class Tetraedro {
-  +Cara[3] caras
-  +String tipo
+    -destilador : Destilador*
+    -emergencias : FuncionEmergencia*[3]
+    -S : Dimension*
+    -emergencia : Dimension*
+    -C : Trit*
+    -E : Trit*
+    +ApplyEvent(CaraEvent& e) void
+    +Resolver() void
+    +TipoCara() int
 }
 
 class Transcender {
-  +Tetraedro[2] tetraedros
-  +Resolver()
+    -caras : cara*[6]
+    +ApplyEvent(TipoEvent& e) void
+    +Resolver() void
 }
 
-Vector *-- Dimension
-Semilla *-- Dimension
-Semilla *-- Vector
-Semilla *-- Reloj
-Tensor *-- Dimension
-Tensor *-- Vector
-Ventana *-- Tensor
-Cluster *-- Tensor
-PiramideTensorial *-- Cluster
-Destilador *-- PairTrigate
-PairTrigate *-- Trigate
-Cara *-- Semilla
-Cara *-- Destilador
-Cara *-- FuncionEmergencia
-Tetraedro *-- Cara
-Transcender *-- Tetraedro
 
-```
+
+
